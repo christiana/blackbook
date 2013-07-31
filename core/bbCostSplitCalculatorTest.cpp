@@ -1,6 +1,8 @@
 #include "catch.hpp"
 #include "bbCostSplitCalculator.h"
 
+using namespace bb;
+
 TEST_CASE("CostSplitCalculator: Add 3 persons, get list of those people", "[unit]")
 {
 	CostSplitCalculator calculator;

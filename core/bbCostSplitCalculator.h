@@ -5,6 +5,11 @@
 #include <map>
 #include <QStringList>
 #include <QDate>
+#include "boost/shared_ptr.hpp"
+#include <QObject>
+
+namespace bb
+{
 
 class Payment
 {
@@ -19,14 +24,17 @@ public:
 	QDate mDate;
 };
 
+typedef boost::shared_ptr<class CostSplitCalculator> CostSplitCalculatorPtr;
+
 /**
  *
  *
  * \date 30 july 2013
  * \author christiana
  */
-class CostSplitCalculator
+class CostSplitCalculator : public QObject
 {
+	Q_OBJECT
 public:
 	class Person
 	{
@@ -41,12 +49,16 @@ public:
 	CostSplitCalculator();
 	void addPerson(QString name);
 	void addWeight(QString name, double weight);
+	double getWeight(QString name) const;
 	QStringList getPersons() const;
 	void addPayment(Payment payment);
 	void addPayment(QString name, double value, QString description, QDate date);
+	void setPayment(int index, Payment payment);
 	void addDebtFromDebitorToCreditor(double value, QString debitor, QString creditor, QString description, QDate date);
 	double getBalance(QString name) const;
 	std::vector<Payment> getPayments() const;
+signals:
+	void calculatorChanged();
 
 private:
 	std::vector<Person> mPersons;
@@ -55,10 +67,11 @@ private:
 
 	double getCreditAndDebitForPerson(QString name) const;
 	double getCreditAndDebitForPerson(QString name, QString creditor, Payment debit) const;
-	double getWeight(QString name) const;
 	double getFractionForPerson(QString name, QStringList participants) const;
 	double getPartOfPaymentForPerson(QString name) const;
 	double getPartOfPaymentForPerson(Payment payment, QString name) const;
 };
+
+} // namespace bb
 
 #endif // BBCOSTSPLITCALCULATOR_H

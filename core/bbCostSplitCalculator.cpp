@@ -3,6 +3,9 @@
 #include <map>
 #include <iostream>
 
+namespace bb
+{
+
 CostSplitCalculator::CostSplitCalculator()
 {
 }
@@ -10,6 +13,8 @@ CostSplitCalculator::CostSplitCalculator()
 void CostSplitCalculator::addPerson(QString name)
 {
 	mPersons.push_back(Person(name));
+	emit calculatorChanged();
+//	std::cout << "added person " << name.toStdString() << std::endl;
 }
 
 void CostSplitCalculator::addWeight(QString name, double weight)
@@ -20,6 +25,7 @@ void CostSplitCalculator::addWeight(QString name, double weight)
 			continue;
 		mPersons[i].mWeight = weight;
 	}
+	emit calculatorChanged();
 }
 
 double CostSplitCalculator::getWeight(QString name) const
@@ -44,6 +50,13 @@ QStringList CostSplitCalculator::getPersons() const
 void CostSplitCalculator::addPayment(Payment payment)
 {
 	mPayments.push_back(payment);
+	emit calculatorChanged();
+}
+
+void CostSplitCalculator::setPayment(int index, Payment payment)
+{
+	mPayments[index] = payment;
+	emit calculatorChanged();
 }
 
 void CostSplitCalculator::addPayment(QString name, double value, QString description, QDate date)
@@ -119,4 +132,7 @@ std::vector<Payment> CostSplitCalculator::getPayments() const
 void CostSplitCalculator::addDebtFromDebitorToCreditor(double value, QString debitor, QString creditor, QString description, QDate date)
 {
 	mDebts.push_back(std::make_pair(creditor, Payment(debitor, value, description, QStringList(), date)));
+	emit calculatorChanged();
 }
+
+} // namespace bb
