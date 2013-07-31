@@ -35,7 +35,6 @@ public:
 		explicit Person(QString name) : mName(name), mWeight(1) {}
 		QString mName;
 		double mWeight;
-		//... credits...
 	};
 
 public:
@@ -54,13 +53,12 @@ private:
 	std::vector<Payment> mPayments;
 	std::vector<std::pair<QString, Payment> > mDebts; ///< map of (creditor,debitor)
 
-	std::map<QString, double> getPaymentPerPerson() const;
-	double getTotalPayment(const std::map<QString, double>& paymentPerPerson) const;
 	double getCreditAndDebitForPerson(QString name) const;
-	double getTotalWeight() const;
+	double getCreditAndDebitForPerson(QString name, QString creditor, Payment debit) const;
 	double getWeight(QString name) const;
-	double getFractionForPerson(QString name) const;
+	double getFractionForPerson(QString name, QStringList participants) const;
 	double getPartOfPaymentForPerson(QString name) const;
+	double getPartOfPaymentForPerson(Payment payment, QString name) const;
 };
 
 #endif // BBCOSTSPLITCALCULATOR_H

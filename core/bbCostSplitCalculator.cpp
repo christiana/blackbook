@@ -1,6 +1,7 @@
 #include "bbCostSplitCalculator.h"
 
 #include <map>
+#include <iostream>
 
 CostSplitCalculator::CostSplitCalculator()
 {
@@ -60,67 +61,54 @@ double CostSplitCalculator::getBalance(QString name) const
 
 double CostSplitCalculator::getPartOfPaymentForPerson(QString name) const
 {
-	std::map<QString, double> paymentPerPerson = this->getPaymentPerPerson();
-	double totalPayment = this->getTotalPayment(paymentPerPerson);
-	double fraction = this->getFractionForPerson(name);
-	double perPerson = fraction * totalPayment;
-
-	return paymentPerPerson[name] - perPerson;
-}
-
-double CostSplitCalculator::getFractionForPerson(QString name) const
-{
-	double totalWeight = this->getTotalWeight();
-	double weight = this->getWeight(name);
-	return weight/totalWeight;
-}
-
-double CostSplitCalculator::getTotalWeight() const
-{
 	double retval = 0;
-	for (unsigned i=0; i<mPersons.size(); ++i)
-		retval += mPersons[i].mWeight;
+	for (unsigned i=0; i<mPayments.size(); ++i)
+		retval += this->getPartOfPaymentForPerson(mPayments[i], name);
 	return retval;
 }
 
-std::map<QString, double> CostSplitCalculator::getPaymentPerPerson() const
+double CostSplitCalculator::getPartOfPaymentForPerson(Payment payment, QString name) const
 {
-	std::map<QString, double> paymentPerPerson;
-	for (unsigned i=0; i<mPayments.size(); ++i)
-	{
-		Payment current = mPayments[i];
-		if (paymentPerPerson.count(current.mPerson))
-			paymentPerPerson[current.mPerson] = 0;
-		paymentPerPerson[current.mPerson] += current.mValue;
-	}
-	return paymentPerPerson;
+	double retval = 0;
+	if (payment.mPerson==name)
+		retval += payment.mValue;
+	double fraction = this->getFractionForPerson(name, payment.mParticipants);
+	retval -= fraction * payment.mValue;
+	return retval;
+}
+
+double CostSplitCalculator::getFractionForPerson(QString name, QStringList participants) const
+{
+	if (participants.empty())
+		participants = this->getPersons();
+
+	if (!participants.contains(name))
+		return 0;
+
+	double totalWeight = 0;
+	for (unsigned i=0; i<participants.size(); ++i)
+		totalWeight += this->getWeight(participants[i]);
+
+	double weight = this->getWeight(name);
+	return weight/totalWeight;
 }
 
 double CostSplitCalculator::getCreditAndDebitForPerson(QString name) const
 {
 	double retval = 0;
-
 	for (unsigned i=0; i<mDebts.size(); ++i)
-	{
-		QString creditor = mDebts[i].first;
-		QString debitor = mDebts[i].second.mPerson;
-		double value =  mDebts[i].second.mValue;
-
-		if (name==creditor)
-			retval += value;
-		if (name==debitor)
-			retval -= value;
-	}
-
+		retval += this->getCreditAndDebitForPerson(name, mDebts[i].first, mDebts[i].second);
 	return retval;
 }
 
-double CostSplitCalculator::getTotalPayment(const std::map<QString, double>& paymentPerPerson) const
+double CostSplitCalculator::getCreditAndDebitForPerson(QString name, QString creditor, Payment debit) const
 {
-	double totalPayment = 0;
-	for (std::map<QString, double>::const_iterator iter=paymentPerPerson.begin(); iter!=paymentPerPerson.end(); ++iter)
-		totalPayment += iter->second;
-	return totalPayment;
+	double retval = 0;
+	if (name==creditor)
+		retval += debit.mValue;
+	if (name==debit.mPerson)
+		retval -= debit.mValue;
+	return retval;
 }
 
 std::vector<Payment> CostSplitCalculator::getPayments() const

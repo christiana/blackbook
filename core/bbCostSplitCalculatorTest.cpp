@@ -118,7 +118,19 @@ TEST_CASE("CostSplitCalculator: Add weighted persons, add payment, get balance f
 	CHECK(calculator.getBalance("HEA") == -75);
 }
 
-TEST_CASE("CostSplitCalculator: Add 2 payments with differing participants, get balance for each person", "[unit]")
+TEST_CASE("CostSplitCalculator: Add payment with fewer participants than all persons, get balance for each person", "[debug]'[unit]")
+{
+	CostSplitCalculatorTestFixture fixture;
+	fixture.addPersons();
+//	fixture.calculator.addPayment(Payment("CA", 300));
+	fixture.calculator.addPayment(Payment("SAH", 600, "description", QStringList() << "CA" << "SAH"));
+
+	CHECK(fixture.calculator.getBalance("CA") == -300);  // -300      = -300
+	CHECK(fixture.calculator.getBalance("SAH") == 300);  // -300 +600 =  300
+	CHECK(fixture.calculator.getBalance("HEA") ==   0); //           = 0
+}
+
+TEST_CASE("CostSplitCalculator: Add 2 payments with differing participants, get balance for each person", "[unit][hide]")
 {
 	CostSplitCalculatorTestFixture fixture;
 	fixture.addPersons();
