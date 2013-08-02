@@ -120,7 +120,7 @@ TEST_CASE("CostSplitCalculator: Add weighted persons, add payment, get balance f
 	CHECK(calculator.getBalance("HEA") == -75);
 }
 
-TEST_CASE("CostSplitCalculator: Add payment with fewer participants than all persons, get balance for each person", "[debug]'[unit]")
+TEST_CASE("CostSplitCalculator: Add payment with fewer participants than all persons, get balance for each person", "[unit]")
 {
 	CostSplitCalculatorTestFixture fixture;
 	fixture.addPersons();
@@ -132,7 +132,7 @@ TEST_CASE("CostSplitCalculator: Add payment with fewer participants than all per
 	CHECK(fixture.calculator.getBalance("HEA") ==   0); //           = 0
 }
 
-TEST_CASE("CostSplitCalculator: Add 2 payments with differing participants, get balance for each person", "[unit][hide]")
+TEST_CASE("CostSplitCalculator: Add 2 payments with differing participants, get balance for each person", "[unit]")
 {
 	CostSplitCalculatorTestFixture fixture;
 	fixture.addPersons();
@@ -143,3 +143,48 @@ TEST_CASE("CostSplitCalculator: Add 2 payments with differing participants, get 
 	CHECK(fixture.calculator.getBalance("SAH") == 200);  // -100      -300 +600 =  200
 	CHECK(fixture.calculator.getBalance("HEA") == -100); // -100                = -100
 }
+
+TEST_CASE("CostSplitCalculator: Create 2 identical instances of calculator, check for equality", "[unit]")
+{
+	CostSplitCalculatorTestFixture fixture;
+	fixture.addPersons();
+	fixture.addPayments();
+
+	CostSplitCalculatorTestFixture fixture2;
+	fixture2.addPersons();
+	fixture2.addPayments();
+
+	CHECK(fixture.calculator == fixture2.calculator);
+}
+
+TEST_CASE("CostSplitCalculator: Create 2 different instances of calculator, check for nonequality", "[unit]")
+{
+	CostSplitCalculatorTestFixture fixture;
+	fixture.addPersons();
+	fixture.addPayments();
+	fixture.calculator.addPayment(Payment("SAH", 300, "description", QStringList() << "CA" << "SAH"));
+
+	CostSplitCalculatorTestFixture fixture2;
+	fixture2.addPersons();
+	fixture2.addPayments();
+
+	CHECK(fixture.calculator != fixture2.calculator);
+}
+
+TEST_CASE("CostSplitCalculator: Save and load instance, check for identity", "[unit]")
+{
+	CostSplitCalculatorTestFixture fixture;
+	fixture.addPersons();
+//	fixture.addPayments();
+	fixture.calculator.addPayment(Payment("SAH", 300, "description"));
+
+	QString filename = "CostSplitCalculator_test.xml";
+	fixture.calculator.save(filename);
+
+	CostSplitCalculator loadedCalculator;
+	loadedCalculator.load(filename);
+	loadedCalculator.save("CostSplitCalculator_test_resaved.xml");
+
+	CHECK(fixture.calculator == loadedCalculator);
+}
+

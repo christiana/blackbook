@@ -39,6 +39,7 @@ private:
 	PersonsTableModel* mPersonsTableModel;
 	PaymentsTableModel* mPaymentsTableModel;
 
+	void closeEvent(QCloseEvent *event);
 	void addAsDockWidget(QWidget* widget);
 };
 

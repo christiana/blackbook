@@ -15,17 +15,21 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 	this->setDockNestingEnabled(true);
 	mCostSplitter.reset(new CostSplitCalculator);
+	mCostSplitter->load(QSettings().value("mainWindow/lastFilename").toString());
+
 	mPersonsTableModel = new PersonsTableModel(this, mCostSplitter);
 	mPaymentsTableModel = new PaymentsTableModel(this, mCostSplitter);
 
 	QTableView* personsTable = new QTableView();
 	personsTable->setWindowTitle("Persons");
+	personsTable->setObjectName("Persons");
 	personsTable->setModel(mPersonsTableModel);
 	this->addAsDockWidget(personsTable);
 //	this->setCentralWidget(personsTable);
 
 	QTableView* paymentsTable = new QTableView();
 	paymentsTable->setWindowTitle("Payments");
+	paymentsTable->setObjectName("Payments");
 	paymentsTable->setModel(mPaymentsTableModel);
 	this->addAsDockWidget(paymentsTable);
 
@@ -42,7 +46,21 @@ MainWindow::MainWindow(QWidget *parent) :
 	allToolBar->addAction(mNewPersonAction);
 	allToolBar->addAction(mNewPaymentAction);
 
+	this->restoreGeometry(QSettings().value("mainWindow/geometry").toByteArray());
+	this->restoreState(QSettings().value("mainWindow/windowState").toByteArray());
+
 	this->show();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+	QMainWindow::closeEvent(event);
+	if (QSettings().value("mainWindow/lastFilename").toString().isEmpty())
+		QSettings().setValue("mainWindow/lastFilename", "autosave.xml");
+	mCostSplitter->save(QSettings().value("mainWindow/lastFilename").toString());
+	QSettings().setValue("mainWindow/geometry", this->saveGeometry());
+	QSettings().setValue("mainWindow/windowState", saveState());
+	std::cout << "quitting" << std::endl;
 }
 
 void MainWindow::newPersonSlot()

@@ -63,6 +63,17 @@ QVariant PaymentsTableModel::headerData(int section, Qt::Orientation orientation
 
 QVariant PaymentsTableModel::data(const QModelIndex& index, int role) const
 {
+	if (role==Qt::CheckStateRole)
+	{
+		Payment payment = mCostSplitter->getPayments()[index.row()];
+		QString participant = this->getParticipantForColumn(index.column());
+		if (!participant.isEmpty())
+		{
+			bool val = payment.mParticipants.contains(participant);
+			return QVariant::fromValue<bool>(val);
+		}
+	}
+
 	if (role==Qt::DisplayRole || role==Qt::EditRole)
 	{
 //		QString name = mCostSplitter->getPersons()[index.row()];
@@ -85,12 +96,12 @@ QVariant PaymentsTableModel::data(const QModelIndex& index, int role) const
 			return QVariant::fromValue<QDate>(payment.mDate);
 		}
 
-		QString participant = this->getParticipantForColumn(index.column());
-		if (!participant.isEmpty())
-		{
-			bool val = payment.mParticipants.contains(participant);
-			return QVariant::fromValue<bool>(val);
-		}
+//		QString participant = this->getParticipantForColumn(index.column());
+//		if (!participant.isEmpty())
+//		{
+//			bool val = payment.mParticipants.contains(participant);
+//			return QVariant::fromValue<bool>(val);
+//		}
 
 //		QStringList persons = mCostSplitter->getPersons();
 //		int personIndex = index.column() - ciPARTICIPANT_START;
@@ -172,8 +183,9 @@ QString PaymentsTableModel::getParticipantForColumn(int column) const
 
 Qt::ItemFlags PaymentsTableModel::flags(const QModelIndex& index) const
 {
-//	if (index.column()==1)
-		return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+	if (index.column()>=ciPARTICIPANT_START)
+		return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+	return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
 //	return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
