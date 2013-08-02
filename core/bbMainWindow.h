@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QtGui>
 #include "boost/shared_ptr.hpp"
+#include <set>
 
 namespace bb
 {
@@ -30,17 +31,30 @@ signals:
 public slots:
 	void newPersonSlot();
 	void newPaymentSlot();
+	void deleteRowSlot();
+	void modelResetSlot();
 
 private:
 	QAction* mNewPersonAction;
 	QAction* mNewPaymentAction;
+	QAction* mDeleteRowAction;
 
 	CostSplitCalculatorPtr mCostSplitter;
 	PersonsTableModel* mPersonsTableModel;
 	PaymentsTableModel* mPaymentsTableModel;
 
+	QTableView* mPersonsTable;
+	QTableView* mPaymentsTable;
+
 	void closeEvent(QCloseEvent *event);
 	void addAsDockWidget(QWidget* widget);
+	std::set<int> getRows(QModelIndexList modelIndices);
+	void createCostSplitter();
+	void closeCostSplitter();
+	void createPersonsGui();
+	void createPaymentsGui();
+	void createActions();
+	void createToolbars();
 };
 
 }

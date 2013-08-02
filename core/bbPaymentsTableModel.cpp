@@ -26,14 +26,6 @@ int PaymentsTableModel::columnCount() const
 	return ciPARTICIPANT_START + mCostSplitter->getPersons().size();
 }
 
-/*
-	QString mPerson;
-	double mValue;
-	QString mDescription;
-	QStringList mParticipants; // empty list means all parties
-	QDate mDate;
-  */
-
 QVariant PaymentsTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
 	if (orientation == Qt::Horizontal)
@@ -50,11 +42,11 @@ QVariant PaymentsTableModel::headerData(int section, Qt::Orientation orientation
 			if (section==ciDATE)
 				return QVariant("Date");
 
-			QStringList persons = mCostSplitter->getPersons();
-			int personIndex = section - ciPARTICIPANT_START;
-			if (personIndex>=0 || personIndex<persons.size())
+
+			QString participant = this->getParticipantForColumn(section);
+			if (!participant.isEmpty())
 			{
-				return QVariant(persons[personIndex]);
+				return QVariant(participant);
 			}
 		}
 	}
@@ -63,20 +55,8 @@ QVariant PaymentsTableModel::headerData(int section, Qt::Orientation orientation
 
 QVariant PaymentsTableModel::data(const QModelIndex& index, int role) const
 {
-	if (role==Qt::CheckStateRole)
-	{
-		Payment payment = mCostSplitter->getPayments()[index.row()];
-		QString participant = this->getParticipantForColumn(index.column());
-		if (!participant.isEmpty())
-		{
-			bool val = payment.mParticipants.contains(participant);
-			return QVariant::fromValue<bool>(val);
-		}
-	}
-
 	if (role==Qt::DisplayRole || role==Qt::EditRole)
 	{
-//		QString name = mCostSplitter->getPersons()[index.row()];
 		Payment payment = mCostSplitter->getPayments()[index.row()];
 
 		if (index.column()==ciPERSON)
@@ -95,23 +75,19 @@ QVariant PaymentsTableModel::data(const QModelIndex& index, int role) const
 		{
 			return QVariant::fromValue<QDate>(payment.mDate);
 		}
-
-//		QString participant = this->getParticipantForColumn(index.column());
-//		if (!participant.isEmpty())
-//		{
-//			bool val = payment.mParticipants.contains(participant);
-//			return QVariant::fromValue<bool>(val);
-//		}
-
-//		QStringList persons = mCostSplitter->getPersons();
-//		int personIndex = index.column() - ciPARTICIPANT_START;
-//		if (personIndex>=0 && personIndex<persons.size())
-//		{
-//			bool val = payment.mParticipants.contains(persons[personIndex]);
-//			return QVariant::fromValue<bool>(val);
-//		}
-
 	}
+
+	if (role==Qt::CheckStateRole)
+	{
+		Payment payment = mCostSplitter->getPayments()[index.row()];
+		QString participant = this->getParticipantForColumn(index.column());
+		if (!participant.isEmpty())
+		{
+			bool val = payment.mParticipants.contains(participant);
+			return QVariant(2*(int(val))); // convert to tristate
+		}
+	}
+
 	return QVariant();
 }
 
@@ -138,34 +114,27 @@ bool PaymentsTableModel::setData(const QModelIndex& index, const QVariant& value
 			payment.mDate = value.toDate();
 		}
 
+		mCostSplitter->setPayment(index.row(), payment);
+		return true;
+	}
+
+	if (role==Qt::CheckStateRole)
+	{
+		Payment payment = mCostSplitter->getPayments()[index.row()];
 		QString participant = this->getParticipantForColumn(index.column());
 		if (!participant.isEmpty())
 		{
-			bool val = value.toBool();
+			bool val = value.toInt();
 			if (val)
 				payment.mParticipants.append(participant);
 			else
 				payment.mParticipants.removeAll(participant);
 			payment.mParticipants.removeDuplicates();
 		}
-
-//		QStringList persons = mCostSplitter->getPersons();
-//		int personIndex = index.column() - ciPARTICIPANT_START;
-//		if (personIndex>=0 && personIndex<persons.size())
-//		{
-//			std::cout << personIndex << " " << persons.size() << std::endl;
-//			QString current = persons[personIndex];
-//			bool val = value.toBool();
-//			if (val)
-//				payment.mParticipants.append(current);
-//			else
-//				payment.mParticipants.removeAll(current);
-//			payment.mParticipants.removeDuplicates();
-//		}
-
 		mCostSplitter->setPayment(index.row(), payment);
 		return true;
 	}
+
 	return false;
 }
 
@@ -175,7 +144,6 @@ QString PaymentsTableModel::getParticipantForColumn(int column) const
 	int personIndex = column - ciPARTICIPANT_START;
 	if (personIndex>=0 && personIndex<persons.size())
 	{
-//		std::cout << personIndex << " " << persons.size() << std::endl;
 		return persons[personIndex];
 	}
 	return "";
@@ -194,5 +162,12 @@ void PaymentsTableModel::costSplitterChangedSlot()
 	this->reset();
 }
 
+void PaymentsTableModel::deleteRows(const std::set<int>& rows)
+{
+	for (std::set<int>::const_reverse_iterator iter=rows.rbegin(); iter!=rows.rend(); ++iter)
+	{
+		mCostSplitter->removePayment(*iter);
+	}
+}
 
 } // namespace bb

@@ -3,6 +3,7 @@
 
 #include <QAbstractTableModel>
 #include "boost/shared_ptr.hpp"
+#include <set>
 
 namespace bb
 {
@@ -27,6 +28,9 @@ public:
 	virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 	virtual Qt::ItemFlags flags(const QModelIndex& index) const;
 	virtual bool setData(const QModelIndex& index, const QVariant& value, int role);
+
+	void deleteRows(const std::set<int>& rows);
+
 signals:
 
 public slots:

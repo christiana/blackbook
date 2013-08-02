@@ -18,6 +18,21 @@ TEST_CASE("CostSplitCalculator: Add 3 persons, get list of those people", "[unit
 	CHECK(persons.contains("HEA"));
 }
 
+TEST_CASE("CostSplitCalculator: Add 3 persons, remove one, get list of those people", "[unit]")
+{
+	CostSplitCalculator calculator;
+	calculator.addPerson("CA");
+	calculator.addPerson("SAH");
+	calculator.addPerson("HEA");
+
+	calculator.removePerson("HEA");
+	QStringList persons = calculator.getPersons();
+
+	CHECK(persons.size()==2);
+	CHECK(persons.contains("CA"));
+	CHECK(persons.contains("SAH"));
+}
+
 class CostSplitCalculatorTestFixture
 {
 public:
@@ -64,7 +79,21 @@ TEST_CASE("CostSplitCalculator: Add 2 payments, get list of those payments", "[u
 
 	std::vector<Payment> payments = fixture.calculator.getPayments();
 	fixture.checkPaymentEqual(fixture.payments[0], payments[0]);
+	fixture.checkPaymentEqual(fixture.payments[1], payments[1]);
 }
+
+TEST_CASE("CostSplitCalculator: Add 2 payments, remove one, get list of those payments", "[unit]")
+{
+	CostSplitCalculatorTestFixture fixture;
+	fixture.addPersons();
+	fixture.addPayments();
+	fixture.calculator.removePayment(0);
+
+	std::vector<Payment> payments = fixture.calculator.getPayments();
+	CHECK(payments.size() == 1);
+	fixture.checkPaymentEqual(fixture.payments[1], payments[0]);
+}
+
 
 TEST_CASE("CostSplitCalculator: Add payment, get balance for each person", "[unit]")
 {

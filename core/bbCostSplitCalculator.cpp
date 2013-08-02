@@ -96,13 +96,19 @@ void CostSplitCalculator::addPerson(QString name)
 
 void CostSplitCalculator::addWeight(QString name, double weight)
 {
-	for (unsigned i=0; i<mPersons.size(); ++i)
-	{
-		if (mPersons[i].mName!=name)
-			continue;
-		mPersons[i].mWeight = weight;
-	}
+	int pos = this->findIndexOfPerson(name);
+	if (pos<0)
+		return;
+	mPersons[pos].mWeight = weight;
 	emit calculatorChanged();
+}
+
+int CostSplitCalculator::findIndexOfPerson(QString name) const
+{
+	for (unsigned i=0; i<mPersons.size(); ++i)
+		if (mPersons[i].mName==name)
+			return i;
+	return -1;
 }
 
 double CostSplitCalculator::getWeight(QString name) const
@@ -333,6 +339,21 @@ bool CostSplitCalculator::operator==(const CostSplitCalculator &other) const
 bool CostSplitCalculator::operator!=(const CostSplitCalculator &other) const
 {
   return !(*this == other);
+}
+
+void CostSplitCalculator::removePerson(QString name)
+{
+	int pos = this->findIndexOfPerson(name);
+	if (pos<0)
+		return;
+	mPersons.erase(mPersons.begin()+pos);
+	emit calculatorChanged();
+}
+
+void CostSplitCalculator::removePayment(int index)
+{
+	mPayments.erase(mPayments.begin()+index);
+	emit calculatorChanged();
 }
 
 } // namespace bb

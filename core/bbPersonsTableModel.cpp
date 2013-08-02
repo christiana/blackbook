@@ -87,5 +87,13 @@ void PersonsTableModel::costSplitterChangedSlot()
 	this->reset();
 }
 
+void PersonsTableModel::deleteRows(const std::set<int>& rows)
+{
+	QStringList persons = mCostSplitter->getPersons();
+	for (std::set<int>::const_iterator iter=rows.begin(); iter!=rows.end(); ++iter)
+	{
+		mCostSplitter->removePerson(persons[*iter]);
+	}
+}
 
 } // namespace bb

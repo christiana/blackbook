@@ -61,12 +61,14 @@ public:
 public:
 	CostSplitCalculator();
 	void addPerson(QString name);
+	void removePerson(QString name);
 	void addWeight(QString name, double weight);
 	double getWeight(QString name) const;
 	QStringList getPersons() const;
 	void addPayment(Payment payment);
 	void addPayment(QString name, double value, QString description, QDate date);
 	void setPayment(int index, Payment payment);
+	void removePayment(int index);
 	void addDebtFromDebitorToCreditor(double value, QString debitor, QString creditor, QString description, QDate date);
 	double getBalance(QString name) const;
 	std::vector<Payment> getPayments() const;
@@ -88,6 +90,7 @@ private:
 	void addXml(QDomElement node);
 	void parseXml(QDomElement node);
 
+	int findIndexOfPerson(QString name) const;
 	double getCreditAndDebitForPerson(QString name) const;
 	double getCreditAndDebitForPerson(QString name, QString creditor, Payment debit) const;
 	double getFractionForPerson(QString name, QStringList participants) const;
