@@ -77,15 +77,15 @@ void MainWindow::createPaymentsGui()
 
 void MainWindow::createActions()
 {
-	mNewPersonAction = new QAction("New Person", this);
+	mNewPersonAction = new QAction(QIcon(":icons/user-new-3.png"), "New Person", this);
 	mNewPersonAction->setStatusTip(tr("Add a new person"));
 	connect(mNewPersonAction, SIGNAL(triggered()), this, SLOT(newPersonSlot()));
 
-	mNewPaymentAction = new QAction("New Payment", this);
+	mNewPaymentAction = new QAction(QIcon(":icons/tab-new-raised.png"), "New Payment", this);
 	mNewPaymentAction->setStatusTip(tr("Add a new payment"));
 	connect(mNewPaymentAction, SIGNAL(triggered()), this, SLOT(newPaymentSlot()));
 
-	mDeleteRowAction = new QAction("Delete", this);
+	mDeleteRowAction = new QAction(QIcon(":icons/tab-close-3.png"), "Delete", this);
 	mDeleteRowAction->setStatusTip(tr("Delete all selected rows"));
 	connect(mDeleteRowAction, SIGNAL(triggered()), this, SLOT(deleteRowSlot()));
 }

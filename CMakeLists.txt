@@ -26,11 +26,11 @@ include_directories(
 set(BlackBook_VERSION_STRING "0.1")
 
 if(APPLE) # For Apple set the icns file containing icons
-	set(MACOSX_BUNDLE_ICON_FILE "application.icns") # set how it shows up in the Info.plist file 
-	set_source_files_properties(${BlackBook_SOURCE_DIR}/icons/application.icns 
+	set(MACOSX_BUNDLE_ICON_FILE "application.icns") # set how it shows up in the Info.plist file
+	set_source_files_properties(${BlackBook_SOURCE_DIR}/icons/application.icns
 															PROPERTIES MACOSX_PACKAGE_LOCATION Resources)  # set where in the bundle to put the icns file
 	
-	set(SOURCES ${SOURCES} ${BlackBook_SOURCE_DIR}/icons/application.icns)  # include the icns file in the target
+	set(BBMAIN_SOURCE_FILES ${BBMAIN_SOURCE_FILES} ${BlackBook_SOURCE_DIR}/icons/application.icns)  # include the icns file in the target
 	set(MACOSX_BUNDLE_INFO_STRING "BlackBook")
 	set(MACOSX_BUNDLE_BUNDLE_NAME "BlackBook")
 	set(MACOSX_BUNDLE_BUNDLE_VERSION "${BlackBook_VERSION_STRING}")
@@ -43,7 +43,8 @@ endif(APPLE)
 # Executable
 #-----------------------------------------------------------------------------
 
-set(BBMAIN_SOURCE_FILES bbMain.cpp)
+QT4_ADD_RESOURCES(BBMAIN_SOURCE_FILES bbResources.qrc)
+set(BBMAIN_SOURCE_FILES bbMain.cpp ${BBMAIN_SOURCE_FILES})
 add_executable(BlackBook MACOSX_BUNDLE ${BBMAIN_SOURCE_FILES} )
 target_link_libraries(BlackBook bbCore)
 

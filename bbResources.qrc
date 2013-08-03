@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/application.icns</file>
+        <file>icons/tab-close-3.png</file>
+        <file>icons/tab-new-raised.png</file>
+        <file>icons/user-delete-2.png</file>
+        <file>icons/user-new-2.png</file>
+        <file>icons/user-new-3.png</file>
+    </qresource>
+</RCC>
