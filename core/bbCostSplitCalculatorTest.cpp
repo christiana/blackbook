@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "bbCostSplitCalculator.h"
+#include <QFile>
 
 using namespace bb;
 
@@ -208,6 +209,7 @@ TEST_CASE("CostSplitCalculator: Save and load instance, check for identity", "[u
 	fixture.calculator.addPayment(Payment("SAH", 300, "description"));
 
 	QString filename = "CostSplitCalculator_test.xml";
+	QFile::remove(filename);
 	fixture.calculator.save(filename);
 
 	CostSplitCalculator loadedCalculator;

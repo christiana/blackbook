@@ -12,6 +12,8 @@ set(BBCORE_SOURCE_FILES
 	bbPersonsTableModel.cpp
 	bbPaymentsTableModel.h
 	bbPaymentsTableModel.cpp
+	bbXmlFile.h
+	bbXmlFile.cpp
 	)
 QT4_WRAP_CPP(BBCORE_SOURCE_FILES
 	bbCostSplitCalculator.h

@@ -89,6 +89,7 @@ private:
 
 	void addXml(QDomElement node);
 	void parseXml(QDomElement node);
+	QDomElement addChild(QDomElement node, QString name);
 
 	int findIndexOfPerson(QString name) const;
 	double getCreditAndDebitForPerson(QString name) const;

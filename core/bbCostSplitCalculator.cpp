@@ -6,7 +6,7 @@
 #include <QDomElement>
 #include <QFile>
 #include <QTextStream>
-
+#include "bbXmlFile.h"
 
 namespace bb
 {
@@ -220,82 +220,56 @@ void CostSplitCalculator::addDebtFromDebitorToCreditor(double value, QString deb
 
 void CostSplitCalculator::save(QString filename)
 {
-	//Gather all the information that needs to be saved
-	QDomDocument doc;
-	doc.appendChild(doc.createProcessingInstruction("xml version =", "'1.0'"));
-	QDomElement rootNode = doc.createElement("root");
-	doc.appendChild(rootNode);
+	XmlFile file;
+	this->addXml(file.document().documentElement());
+	file.save(filename);
+}
 
-	this->addXml(rootNode);
-
-	QFile file(filename);
-	if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-	{
-		QTextStream stream(&file);
-		stream << doc.toString(4);
-		file.close();
-	}
-	else
-	{
-		std::cout << "Save error: Could not open " + file.fileName().toStdString() << std::endl;
-	}
+QDomElement CostSplitCalculator::addChild(QDomElement node, QString name)
+{
+	QDomDocument doc = node.ownerDocument();
+	QDomElement childNode = doc.createElement(name);
+	node.appendChild(childNode);
+	return childNode;
 }
 
 void CostSplitCalculator::addXml(QDomElement node)
 {
 	QDomDocument doc = node.ownerDocument();
-	QDomElement personsNode = doc.createElement("persons");
-	node.appendChild(personsNode);
+	QDomElement personsNode = this->addChild(node, "persons");
 	for (unsigned i=0; i<mPersons.size(); ++i)
 	{
-		QDomElement personNode = doc.createElement("person");
-		personsNode.appendChild(personNode);
+		QDomElement personNode = this->addChild(personsNode, "person");
 		mPersons[i].addXml(personNode);
 	}
 
-	QDomElement paymentsNode = doc.createElement("payments");
-	node.appendChild(paymentsNode);
+	QDomElement paymentsNode = this->addChild(node, "payments");
 	for (unsigned i=0; i<mPayments.size(); ++i)
 	{
-		QDomElement paymentNode = doc.createElement("payment");
-		paymentsNode.appendChild(paymentNode);
+		QDomElement paymentNode = this->addChild(paymentsNode, "payment");
 		mPayments[i].addXml(paymentNode);
 	}
 
-	QDomElement debtsNode = doc.createElement("debts");
-	node.appendChild(debtsNode);
+	QDomElement debtsNode = this->addChild(node, "debts");
 	for (unsigned i=0; i<mDebts.size(); ++i)
 	{
-		QDomElement debtNode = doc.createElement("debt");
-		debtsNode.appendChild(debtNode);
-		QDomElement creditorNode = doc.createElement("creditor");
-		debtNode.appendChild(creditorNode);
+		QDomElement debtNode = this->addChild(debtsNode, "debt");
+		QDomElement creditorNode = this->addChild(debtNode, "creditor");
 		creditorNode.setAttribute("name", mDebts[i].first);
 
-		QDomElement debitorNode = doc.createElement("debitor");
-		debtNode.appendChild(debitorNode);
+		QDomElement debitorNode = this->addChild(debtNode, "debitor");
 		mDebts[i].second.addXml(debitorNode);
 	}
 }
 
 void CostSplitCalculator::load(QString filename)
 {
-	QFile file(filename);
-	if (file.open(QIODevice::ReadOnly))
-	{
-		QDomDocument doc;
-		QString emsg;
-		int eline, ecolumn;
-		if (doc.setContent(&file, false, &emsg, &eline, &ecolumn))
-		{
-			QDomNode rootNode = doc.namedItem("root");
-			this->parseXml(rootNode.toElement());
-		}
-		else
-		{
-			std::cout << QString("Could not parse XML file :" + file.fileName() + " because: " + emsg + "").toStdString() << std::endl;
-		}
-	}
+	XmlFile file;
+	if (!file.load(filename))
+		return;
+
+	QDomNode rootNode = file.document().namedItem("root");
+	this->parseXml(rootNode.toElement());
 }
 
 void CostSplitCalculator::parseXml(QDomElement node)
