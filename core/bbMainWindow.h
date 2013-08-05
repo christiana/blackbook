@@ -12,6 +12,7 @@ namespace bb
 typedef boost::shared_ptr<class CostSplitCalculator> CostSplitCalculatorPtr;
 class PersonsTableModel;
 class PaymentsTableModel;
+class DebtsTableModel;
 
 /**
  *
@@ -31,20 +32,24 @@ signals:
 public slots:
 	void newPersonSlot();
 	void newPaymentSlot();
+	void newDebtSlot();
 	void deleteRowSlot();
 	void modelResetSlot();
 
 private:
 	QAction* mNewPersonAction;
 	QAction* mNewPaymentAction;
+	QAction* mNewDebtAction;
 	QAction* mDeleteRowAction;
 
 	CostSplitCalculatorPtr mCostSplitter;
 	PersonsTableModel* mPersonsTableModel;
 	PaymentsTableModel* mPaymentsTableModel;
+	DebtsTableModel* mDebtsTableModel;
 
 	QTableView* mPersonsTable;
 	QTableView* mPaymentsTable;
+	QTableView* mDebtsTable;
 
 	void closeEvent(QCloseEvent *event);
 	void addAsDockWidget(QWidget* widget);
@@ -53,6 +58,7 @@ private:
 	void closeCostSplitter();
 	void createPersonsGui();
 	void createPaymentsGui();
+	void createDebtsGui();
 	void createActions();
 	void createToolbars();
 };

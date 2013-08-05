@@ -58,6 +58,15 @@ bool XmlFile::load(QString filename)
 	return false;
 }
 
+QDomElement XmlFile::addChild(QDomElement node, QString name)
+{
+	QDomDocument doc = node.ownerDocument();
+	QDomElement childNode = doc.createElement(name);
+	node.appendChild(childNode);
+	return childNode;
+}
+
+
 } // namespace bb
 
 

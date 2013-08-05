@@ -13,7 +13,7 @@ PaymentsTableModel::PaymentsTableModel(QObject *parent, CostSplitCalculatorPtr c
 
 int PaymentsTableModel::rowCount(const QModelIndex& parent) const
 {
-	return mCostSplitter->getPayments().size();
+	return mCostSplitter->getPaymentsCount();
 }
 
 int PaymentsTableModel::columnCount(const QModelIndex& parent) const
@@ -57,7 +57,7 @@ QVariant PaymentsTableModel::data(const QModelIndex& index, int role) const
 {
 	if (role==Qt::DisplayRole || role==Qt::EditRole)
 	{
-		Payment payment = mCostSplitter->getPayments()[index.row()];
+		Payment payment = mCostSplitter->getPayment(index.row());
 
 		if (index.column()==ciPERSON)
 		{
@@ -79,7 +79,7 @@ QVariant PaymentsTableModel::data(const QModelIndex& index, int role) const
 
 	if (role==Qt::CheckStateRole)
 	{
-		Payment payment = mCostSplitter->getPayments()[index.row()];
+		Payment payment = mCostSplitter->getPayment(index.row());
 		QString participant = this->getParticipantForColumn(index.column());
 		if (!participant.isEmpty())
 		{
@@ -95,7 +95,7 @@ bool PaymentsTableModel::setData(const QModelIndex& index, const QVariant& value
 {
 	if (role==Qt::EditRole)
 	{
-		Payment payment = mCostSplitter->getPayments()[index.row()];
+		Payment payment = mCostSplitter->getPayment(index.row());
 
 		if (index.column()==ciPERSON)
 		{
@@ -120,7 +120,7 @@ bool PaymentsTableModel::setData(const QModelIndex& index, const QVariant& value
 
 	if (role==Qt::CheckStateRole)
 	{
-		Payment payment = mCostSplitter->getPayments()[index.row()];
+		Payment payment = mCostSplitter->getPayment(index.row());
 		QString participant = this->getParticipantForColumn(index.column());
 		if (!participant.isEmpty())
 		{

@@ -19,6 +19,7 @@ public:
 	void save(QString filename);
 	bool load(QString filename);
 	QDomDocument document();
+	static QDomElement addChild(QDomElement node, QString name);
 private:
 	QDomDocument mDocument;
 };

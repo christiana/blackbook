@@ -56,7 +56,11 @@ public:
 	void addPayments()
 	{
 		for (unsigned i=0; i<this->payments.size(); ++i)
-			calculator.addPayment(this->payments[i].mPerson, this->payments[i].mValue, this->payments[i].mDescription, this->payments[i].mDate);
+			calculator.addPayment(Payment(this->payments[i].mPerson,
+										  this->payments[i].mValue,
+										  this->payments[i].mDescription,
+										  QStringList(),
+										  this->payments[i].mDate));
 	}
 
 	void checkPaymentEqual(Payment lhs, Payment rhs)
@@ -78,9 +82,8 @@ TEST_CASE("CostSplitCalculator: Add 2 payments, get list of those payments", "[u
 	fixture.addPersons();
 	fixture.addPayments();
 
-	std::vector<Payment> payments = fixture.calculator.getPayments();
-	fixture.checkPaymentEqual(fixture.payments[0], payments[0]);
-	fixture.checkPaymentEqual(fixture.payments[1], payments[1]);
+	fixture.checkPaymentEqual(fixture.payments[0], fixture.calculator.getPayment(0));
+	fixture.checkPaymentEqual(fixture.payments[1], fixture.calculator.getPayment(1));
 }
 
 TEST_CASE("CostSplitCalculator: Add 2 payments, remove one, get list of those payments", "[unit]")
@@ -90,9 +93,9 @@ TEST_CASE("CostSplitCalculator: Add 2 payments, remove one, get list of those pa
 	fixture.addPayments();
 	fixture.calculator.removePayment(0);
 
-	std::vector<Payment> payments = fixture.calculator.getPayments();
-	CHECK(payments.size() == 1);
-	fixture.checkPaymentEqual(fixture.payments[1], payments[0]);
+//	std::vector<Payment> payments = fixture.calculator.getPayments();
+	CHECK(fixture.calculator.getPaymentsCount() == 1);
+	fixture.checkPaymentEqual(fixture.payments[1], fixture.calculator.getPayment(0));
 }
 
 
@@ -102,7 +105,7 @@ TEST_CASE("CostSplitCalculator: Add payment, get balance for each person", "[uni
 	calculator.addPerson("CA");
 	calculator.addPerson("SAH");
 	calculator.addPerson("HEA");
-	calculator.addPayment("CA", 300, "Test payment of 300€.", QDate(2013, 07, 30));
+	calculator.addPayment(Payment("CA", 300, "Test payment of 300€.", QStringList(), QDate(2013, 07, 30)));
 
 	CHECK(calculator.getBalance("CA") == 200);
 	CHECK(calculator.getBalance("SAH") == -100);
@@ -115,7 +118,8 @@ TEST_CASE("CostSplitCalculator: Add person-person transaction, get balance for e
 	calculator.addPerson("CA");
 	calculator.addPerson("SAH");
 	calculator.addPerson("HEA");
-	calculator.addDebtFromDebitorToCreditor(300, "CA", "HEA", "Test CA owing 300€ to HEA.", QDate(2013, 8, 1));
+	Debt debt("HEA", Payment("CA", 300, "Test CA owing 300€ to HEA.", QStringList(), QDate(2013, 8, 1)));
+	calculator.addDebt(debt);
 
 	CHECK(calculator.getBalance("CA") == -300);
 	CHECK(calculator.getBalance("SAH") == 0);
@@ -128,8 +132,9 @@ TEST_CASE("CostSplitCalculator: Add payment and person-person transaction, get b
 	calculator.addPerson("CA");
 	calculator.addPerson("SAH");
 	calculator.addPerson("HEA");
-	calculator.addPayment("CA", 300, "Test payment of 300€.", QDate(2013, 07, 30));
-	calculator.addDebtFromDebitorToCreditor(300, "CA", "HEA", "Test CA owing 300€ to HEA.", QDate(2013, 8, 1));
+	calculator.addPayment(Payment("CA", 300, "Test payment of 300€.", QStringList(), QDate(2013, 07, 30)));
+	Debt debt("HEA", Payment("CA", 300, "Test CA owing 300€ to HEA.", QStringList(), QDate(2013, 8, 1)));
+	calculator.addDebt(debt);
 
 	CHECK(calculator.getBalance("CA") == -100);
 	CHECK(calculator.getBalance("SAH") == -100);
@@ -143,7 +148,7 @@ TEST_CASE("CostSplitCalculator: Add weighted persons, add payment, get balance f
 	calculator.addPerson("SAH");
 	calculator.addPerson("HEA");
 	calculator.addWeight("CA", 2);
-	calculator.addPayment("CA", 300, "Test payment of 300€.", QDate(2013, 07, 30));
+	calculator.addPayment(Payment("CA", 300, "Test payment of 300€.", QStringList(), QDate(2013, 07, 30)));
 
 	CHECK(calculator.getBalance("CA") == 150);
 	CHECK(calculator.getBalance("SAH") == -75);
@@ -207,6 +212,7 @@ TEST_CASE("CostSplitCalculator: Save and load instance, check for identity", "[u
 	fixture.addPersons();
 //	fixture.addPayments();
 	fixture.calculator.addPayment(Payment("SAH", 300, "description"));
+	fixture.calculator.addDebt(Debt("CA", Payment("SAH", 300, "description")));
 
 	QString filename = "CostSplitCalculator_test.xml";
 	QFile::remove(filename);

@@ -7,30 +7,15 @@
 #include <QDate>
 #include "boost/shared_ptr.hpp"
 #include <QObject>
+#include "bbPersonList.h"
+#include "bbPayment.h"
+#include "bbPaymentEntry.h"
+#include "bbDebtEntry.h"
 
 class QDomElement;
 
 namespace bb
 {
-
-class Payment
-{
-public:
-	Payment() {}
-	Payment(QString person, double value, QString description="", QStringList participants=QStringList(), QDate date=QDate::currentDate()) :
-		mPerson(person), mValue(value), mDescription(description), mParticipants(participants), mDate(date) {}
-
-	QString mPerson;
-	double mValue;
-	QString mDescription;
-	QStringList mParticipants; // empty list means all parties
-	QDate mDate;
-
-	bool operator==(const Payment &other) const;
-	bool operator!=(const Payment &other) const;
-	void addXml(QDomElement node);
-	void parseXml(QDomElement node);
-};
 
 typedef boost::shared_ptr<class CostSplitCalculator> CostSplitCalculatorPtr;
 
@@ -44,34 +29,40 @@ class CostSplitCalculator : public QObject
 {
 	Q_OBJECT
 public:
-	class Person
-	{
-	public:
-		Person() : mWeight(1) {}
-		explicit Person(QString name) : mName(name), mWeight(1) {}
-		QString mName;
-		double mWeight;
-
-		bool operator==(const Person &other) const;
-		bool operator!=(const Person &other) const;
-		void addXml(QDomElement node);
-		void parseXml(QDomElement node);
-	};
 
 public:
 	CostSplitCalculator();
+
 	void addPerson(QString name);
 	void removePerson(QString name);
 	void addWeight(QString name, double weight);
 	double getWeight(QString name) const;
 	QStringList getPersons() const;
-	void addPayment(Payment payment);
-	void addPayment(QString name, double value, QString description, QDate date);
-	void setPayment(int index, Payment payment);
-	void removePayment(int index);
-	void addDebtFromDebitorToCreditor(double value, QString debitor, QString creditor, QString description, QDate date);
 	double getBalance(QString name) const;
-	std::vector<Payment> getPayments() const;
+
+	void addPayment(Payment payment);
+	void setPayment(int index, Payment payment);
+	Payment getPayment(int index) const;
+	void removePayment(int index);
+	int getPaymentsCount() const;
+
+	void addDebt(Debt debt);
+	void setDebt(int index, Debt debt);
+	Debt getDebt(int index) const;
+	void removeDebt(int index);
+	int getDebtsCount() const;
+
+	std::vector<EntryPtr> getEntries();
+	void remove(EntryPtr entry);
+	std::vector<DebtEntryPtr> getDebts() const; // downcasted and filtered on NULL
+	std::vector<PaymentEntryPtr> getPayments() const; // downcasted and filtered on NULL
+	// set is included by modding the pointers
+	// count directly on the lists
+	// get on the lists
+	// requirement: each entry emits signals when changed (set)
+
+	template<class ENTRY_TYPE>
+	std::vector<boost::shared_ptr<ENTRY_TYPE> > getEntriesOfType() const;
 
 	void save(QString filename);
 	void load(QString filename);
@@ -83,20 +74,11 @@ signals:
 	void calculatorChanged();
 
 private:
-	std::vector<Person> mPersons;
-	std::vector<Payment> mPayments;
-	std::vector<std::pair<QString, Payment> > mDebts; ///< map of (creditor,debitor)
-
+	PersonListPtr mPersons;
+	std::vector<EntryPtr> mEntries;
 	void addXml(QDomElement node);
 	void parseXml(QDomElement node);
-	QDomElement addChild(QDomElement node, QString name);
-
-	int findIndexOfPerson(QString name) const;
-	double getCreditAndDebitForPerson(QString name) const;
-	double getCreditAndDebitForPerson(QString name, QString creditor, Payment debit) const;
-	double getFractionForPerson(QString name, QStringList participants) const;
-	double getPartOfPaymentForPerson(QString name) const;
-	double getPartOfPaymentForPerson(Payment payment, QString name) const;
+	EntryPtr createEntry(QString type, PersonListPtr persons);
 };
 
 } // namespace bb

@@ -12,14 +12,29 @@ set(BBCORE_SOURCE_FILES
 	bbPersonsTableModel.cpp
 	bbPaymentsTableModel.h
 	bbPaymentsTableModel.cpp
+	bbDebtsTableModel.h
+	bbDebtsTableModel.cpp
 	bbXmlFile.h
 	bbXmlFile.cpp
+	bbPersonList.h
+	bbPersonList.cpp
+	bbUtilities.h
+	bbUtilities.cpp
+	bbEntry.h
+	bbEntry.cpp
+	bbPaymentEntry.h
+	bbPaymentEntry.cpp
+	bbDebtEntry.h
+	bbDebtEntry.cpp
+	bbPayment.h
+	bbPayment.cpp
 	)
 QT4_WRAP_CPP(BBCORE_SOURCE_FILES
 	bbCostSplitCalculator.h
 	bbMainWindow.h
 	bbPersonsTableModel.h
 	bbPaymentsTableModel.h
+	bbDebtsTableModel.h
 	)
 add_library( bbCore ${BBCORE_SOURCE_FILES} )
 target_link_libraries( bbCore ${QT_LIBRARIES} )

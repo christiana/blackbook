@@ -5,6 +5,7 @@
 #include "bbCostSplitCalculator.h"
 #include "bbPersonsTableModel.h"
 #include "bbPaymentsTableModel.h"
+#include "bbDebtsTableModel.h"
 #include <QInputDialog>
 
 namespace bb
@@ -18,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	this->createPersonsGui();
 	this->createPaymentsGui();
+	this->createDebtsGui();
 
 	this->createActions();
 	this->createToolbars();
@@ -75,6 +77,18 @@ void MainWindow::createPaymentsGui()
 	this->addAsDockWidget(mPaymentsTable);
 }
 
+void MainWindow::createDebtsGui()
+{
+	mDebtsTableModel = new DebtsTableModel(this, mCostSplitter);
+	connect(mDebtsTableModel, SIGNAL(modelReset()), this, SLOT(modelResetSlot()));
+
+	mDebtsTable = new QTableView();
+	mDebtsTable->setWindowTitle("Debts");
+	mDebtsTable->setObjectName("Debts");
+	mDebtsTable->setModel(mDebtsTableModel);
+	this->addAsDockWidget(mDebtsTable);
+}
+
 void MainWindow::createActions()
 {
 	mNewPersonAction = new QAction(QIcon(":icons/user-new-3.png"), "New Person", this);
@@ -84,6 +98,10 @@ void MainWindow::createActions()
 	mNewPaymentAction = new QAction(QIcon(":icons/tab-new-raised.png"), "New Payment", this);
 	mNewPaymentAction->setStatusTip(tr("Add a new payment"));
 	connect(mNewPaymentAction, SIGNAL(triggered()), this, SLOT(newPaymentSlot()));
+
+	mNewDebtAction = new QAction(QIcon(":icons/tab-new-raised.png"), "New Debt", this);
+	mNewDebtAction->setStatusTip(tr("Add a new debt"));
+	connect(mNewDebtAction, SIGNAL(triggered()), this, SLOT(newDebtSlot()));
 
 	mDeleteRowAction = new QAction(QIcon(":icons/tab-close-3.png"), "Delete", this);
 	mDeleteRowAction->setStatusTip(tr("Delete all selected rows"));
@@ -96,6 +114,7 @@ void MainWindow::createToolbars()
 	allToolBar->setObjectName("AllToolBar");
 	allToolBar->addAction(mNewPersonAction);
 	allToolBar->addAction(mNewPaymentAction);
+	allToolBar->addAction(mNewDebtAction);
 	allToolBar->addAction(mDeleteRowAction);
 }
 
@@ -115,12 +134,20 @@ void MainWindow::newPaymentSlot()
 	mCostSplitter->addPayment(payment);
 }
 
+void MainWindow::newDebtSlot()
+{
+	Debt debt("", Payment("", 0, "", QStringList(), QDate::currentDate()));
+	mCostSplitter->addDebt(debt);
+}
+
 void MainWindow::deleteRowSlot()
 {
 	std::set<int> paymentRows = this->getRows(mPaymentsTable->selectionModel()->selectedIndexes());
 	std::set<int> personsRows = this->getRows(mPersonsTable->selectionModel()->selectedIndexes());
+	std::set<int> debtRows = this->getRows(mDebtsTable->selectionModel()->selectedIndexes());
 	mPaymentsTableModel->deleteRows(paymentRows);
 	mPersonsTableModel->deleteRows(personsRows);
+	mDebtsTableModel->deleteRows(debtRows);
 }
 
 std::set<int> MainWindow::getRows(QModelIndexList modelIndices)
@@ -143,6 +170,7 @@ void MainWindow::modelResetSlot()
 {
 	mPaymentsTable->resizeColumnsToContents();
 	mPersonsTable->resizeColumnsToContents();
+	mDebtsTable->resizeColumnsToContents();
 }
 
 }
