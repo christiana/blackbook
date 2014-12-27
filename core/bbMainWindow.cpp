@@ -1,12 +1,21 @@
 #include "bbMainWindow.h"
 
 #include <QTableView>
+#include <QAction>
+#include <QToolBar>
+#include <QDockWidget>
 #include "bbPersonsTableModel.h"
 #include "bbCostSplitCalculator.h"
 #include "bbPersonsTableModel.h"
 #include "bbPaymentsTableModel.h"
 #include "bbDebtsTableModel.h"
+#include "bbTableModel.h"
 #include <QInputDialog>
+#include <iostream>
+#include <QApplication>
+#include <QClipboard>
+#include <QHeaderView>
+#include <QFileDialog>
 
 namespace bb
 {
@@ -43,14 +52,72 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::createCostSplitter()
 {
 	mCostSplitter.reset(new CostSplitCalculator);
-	mCostSplitter->load(QSettings().value("mainWindow/lastFilename").toString());
+
+	QString fileName = QSettings().value("mainWindow/lastFilename").toString();
+	if (fileName.isEmpty())
+		fileName = "blackbook.data.xml";
+	this->loadFile(fileName);
+
+//	mCurrentFile = QSettings().value("mainWindow/lastFilename").toString();
+
+//	mCostSplitter->load(mCurrentFile);
+//	mCostSplitter->load(QSettings().value("mainWindow/lastFilename").toString());
 }
 
 void MainWindow::closeCostSplitter()
 {
-	if (QSettings().value("mainWindow/lastFilename").toString().isEmpty())
-		QSettings().setValue("mainWindow/lastFilename", "autosave.xml");
-	mCostSplitter->save(QSettings().value("mainWindow/lastFilename").toString());
+	mCostSplitter->save(mCurrentFile);
+
+//	if (QSettings().value("mainWindow/lastFilename").toString().isEmpty())
+//		QSettings().setValue("mainWindow/lastFilename", "autosave.xml");
+//	mCostSplitter->save(QSettings().value("mainWindow/lastFilename").toString());
+}
+
+void MainWindow::loadFile(QString filename)
+{
+	mCurrentFile = filename;
+	mCostSplitter->load(mCurrentFile);
+	QSettings().setValue("mainWindow/lastFilename", mCurrentFile);
+
+//	if (QSettings().value("mainWindow/lastFilename").toString().isEmpty())
+//		QSettings().setValue("mainWindow/lastFilename", "autosave.xml");
+//	mCostSplitter->save(QSettings().value("mainWindow/lastFilename").toString());
+}
+
+void MainWindow::newFileSlot()
+{
+	QString fileName = QFileDialog::getSaveFileName(this, tr("New File"),
+							   "",
+							   tr("BlackBook files (*.xml)"));
+
+	if (fileName.isEmpty())
+		return;
+
+	this->loadFile(fileName);
+
+//	mCurrentFile = fileName;
+//	QSettings().setValue("mainWindow/lastFilename", mCurrentFile);
+//	mCostSplitter->clear();
+}
+
+void MainWindow::loadFileSlot()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
+							   "",
+							   tr("BlackBook files (*.xml)"));
+
+	if (fileName.isEmpty())
+		return;
+
+	this->loadFile(fileName);
+//	mCurrentFile = fileName;
+//	QSettings().setValue("mainWindow/lastFilename", mCurrentFile);
+//	mCostSplitter->load(fileName);
+}
+
+void MainWindow::saveFileSlot()
+{
+	mCostSplitter->save(mCurrentFile);
 }
 
 void MainWindow::createPersonsGui()
@@ -58,11 +125,7 @@ void MainWindow::createPersonsGui()
 	mPersonsTableModel = new PersonsTableModel(this, mCostSplitter);
 	connect(mPersonsTableModel, SIGNAL(modelReset()), this, SLOT(modelResetSlot()));
 
-	mPersonsTable = new QTableView();
-	mPersonsTable->setWindowTitle("Persons");
-	mPersonsTable->setObjectName("Persons");
-	mPersonsTable->setModel(mPersonsTableModel);
-	this->addAsDockWidget(mPersonsTable);
+	mPersonsTable = this->createTableView(mPersonsTableModel);
 }
 
 void MainWindow::createPaymentsGui()
@@ -70,11 +133,27 @@ void MainWindow::createPaymentsGui()
 	mPaymentsTableModel = new PaymentsTableModel(this, mCostSplitter);
 	connect(mPaymentsTableModel, SIGNAL(modelReset()), this, SLOT(modelResetSlot()));
 
-	mPaymentsTable = new QTableView();
-	mPaymentsTable->setWindowTitle("Payments");
-	mPaymentsTable->setObjectName("Payments");
-	mPaymentsTable->setModel(mPaymentsTableModel);
-	this->addAsDockWidget(mPaymentsTable);
+	mPaymentsTable = this->createTableView(mPaymentsTableModel);
+}
+
+MyTableView* MainWindow::createTableView(TableModel* model)
+{
+	MyTableView* retval = new MyTableView();
+	retval->setWindowTitle(model->getTitle());
+	retval->setObjectName(model->getTitle());
+	retval->setModel(model);
+	retval->setTabKeyNavigation(true);
+	connect(retval, &MyTableView::copyToClipboard, model, &TableModel::onCopyToClipboard);
+	connect(retval, &MyTableView::pasteFromClipboard, model, &TableModel::onPasteFromClipboard);
+
+	QFontMetrics metric(retval->font());
+	int textLineHeight = metric.lineSpacing()* 1.2;
+	QHeaderView *verticalHeader = retval->verticalHeader();
+	verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
+	verticalHeader->setDefaultSectionSize(textLineHeight);
+
+	this->addAsDockWidget(retval);
+	return retval;
 }
 
 void MainWindow::createDebtsGui()
@@ -82,15 +161,26 @@ void MainWindow::createDebtsGui()
 	mDebtsTableModel = new DebtsTableModel(this, mCostSplitter);
 	connect(mDebtsTableModel, SIGNAL(modelReset()), this, SLOT(modelResetSlot()));
 
-	mDebtsTable = new QTableView();
-	mDebtsTable->setWindowTitle("Debts");
-	mDebtsTable->setObjectName("Debts");
-	mDebtsTable->setModel(mDebtsTableModel);
-	this->addAsDockWidget(mDebtsTable);
+	mDebtsTable = this->createTableView(mDebtsTableModel);
 }
 
 void MainWindow::createActions()
 {
+	mNewFileAction = new QAction(QIcon(":/icons/new.png"), "New file", this);
+	mNewFileAction->setShortcut(tr("Ctrl+N"));
+	mNewFileAction->setStatusTip("Create a new file");
+	connect(mNewFileAction, &QAction::triggered, this, &MainWindow::newFileSlot);
+
+	mSaveFileAction = new QAction(QIcon(":/icons/save.png"), "Save file", this);
+	mSaveFileAction->setShortcut(tr("Ctrl+S"));
+	mSaveFileAction->setStatusTip(tr("Save file"));
+	connect(mSaveFileAction, &QAction::triggered, this, &MainWindow::saveFileSlot);
+
+	mLoadFileAction = new QAction(QIcon(":/icons/open.png"), "Load file", this);
+	mLoadFileAction->setShortcut(tr("Ctrl+L"));
+	mLoadFileAction->setStatusTip(tr("Load file"));
+	connect(mLoadFileAction, &QAction::triggered, this, &MainWindow::loadFileSlot);
+
 	mNewPersonAction = new QAction(QIcon(":icons/user-new-3.png"), "New Person", this);
 	mNewPersonAction->setStatusTip(tr("Add a new person"));
 	connect(mNewPersonAction, SIGNAL(triggered()), this, SLOT(newPersonSlot()));
@@ -110,8 +200,15 @@ void MainWindow::createActions()
 
 void MainWindow::createToolbars()
 {
+	QToolBar* fileToolBar = addToolBar("File");
+	fileToolBar->setObjectName("FileToolBar");
+	fileToolBar->addAction(mNewFileAction);
+	fileToolBar->addAction(mSaveFileAction);
+	fileToolBar->addAction(mLoadFileAction);
+
 	QToolBar* allToolBar = addToolBar("All");
 	allToolBar->setObjectName("AllToolBar");
+
 	allToolBar->addAction(mNewPersonAction);
 	allToolBar->addAction(mNewPaymentAction);
 	allToolBar->addAction(mNewDebtAction);
@@ -171,6 +268,61 @@ void MainWindow::modelResetSlot()
 	mPaymentsTable->resizeColumnsToContents();
 	mPersonsTable->resizeColumnsToContents();
 	mDebtsTable->resizeColumnsToContents();
+
+	this->setWindowTitle(mCurrentFile);
+
+	std::cout << "modelreset" << std::endl;
+	mCostSplitter->verifyCalculations();
+}
+
+
+//source: http://stackoverflow.com/questions/3135737/copying-part-of-qtableview
+void MyTableView::keyPressEvent(QKeyEvent* event)
+{
+	if (event->key() == Qt::Key_C && (event->modifiers() & Qt::ControlModifier))
+	{
+		this->onCopyToClipboard();
+	}
+	if (event->key() == Qt::Key_V && (event->modifiers() & Qt::ControlModifier))
+	{
+		emit pasteFromClipboard();
+	}
+	if (event->key() == Qt::Key_A && (event->modifiers() & Qt::ControlModifier))
+	{
+		this->selectAll();
+	}
+}
+
+void MyTableView::onCopyToClipboard()
+{
+	std::cout << "void MyTableView::onCopyToClipboard()" << std::endl;
+
+	QModelIndexList cells = this->selectedIndexes();
+	qSort(cells); // Necessary, otherwise they are in column order
+
+	QString text;
+	int currentRow = 0; // To determine when to insert newlines
+	foreach (const QModelIndex& cell, cells)
+	{
+		if (text.length() == 0)
+		{
+			// First item
+		}
+		else if (cell.row() != currentRow)
+		{
+			// New row
+			text += '\n';
+		}
+		else
+		{
+			// Next cell
+			text += '\t';
+		}
+		currentRow = cell.row();
+		text += cell.data().toString();
+	}
+
+	QApplication::clipboard()->setText(text);
 }
 
 }

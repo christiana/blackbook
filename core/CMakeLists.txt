@@ -28,19 +28,21 @@ set(BBCORE_SOURCE_FILES
 	bbDebtEntry.cpp
 	bbPayment.h
 	bbPayment.cpp
+	bbTableModel.cpp
 	)
-QT4_WRAP_CPP(BBCORE_SOURCE_FILES
+QT5_WRAP_CPP(BBCORE_SOURCE_FILES
 	bbCostSplitCalculator.h
 	bbMainWindow.h
 	bbPersonsTableModel.h
 	bbPaymentsTableModel.h
 	bbDebtsTableModel.h
+	bbTableModel.h
 	)
 add_library( bbCore ${BBCORE_SOURCE_FILES} )
-target_link_libraries( bbCore ${QT_LIBRARIES} )
+target_link_libraries( bbCore Qt5::Widgets Qt5::Xml )
 
 if (BUILD_TESTING)
-	QT4_WRAP_CPP(BBTEST_CORE_SOURCES
+	QT5_WRAP_CPP(BBTEST_CORE_SOURCES
 		)
 	set(BBTEST_CORE_SOURCES ${BBTEST_CORE_SOURCES}
 		bbCostSplitCalculatorTest.cpp

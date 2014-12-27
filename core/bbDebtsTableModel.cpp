@@ -1,14 +1,17 @@
 #include "bbDebtsTableModel.h"
 #include "bbCostSplitCalculator.h"
+#include <QBrush>
+#include <iostream>
+#include <QApplication>
+#include <QClipboard>
+
 
 namespace bb
 {
 
 DebtsTableModel::DebtsTableModel(QObject *parent, CostSplitCalculatorPtr costSplitter) :
-	QAbstractTableModel(parent),
-	mCostSplitter(costSplitter)
+	TableModel(parent, costSplitter)
 {
-	connect(costSplitter.get(), SIGNAL(calculatorChanged()), this, SLOT(costSplitterChangedSlot()));
 }
 
 int DebtsTableModel::rowCount(const QModelIndex& parent) const
@@ -66,7 +69,24 @@ QVariant DebtsTableModel::data(const QModelIndex& index, int role) const
 		}
 		if (index.column()==ciDATE)
 		{
-			return QVariant::fromValue<QDate>(debt.mPayment.mDate);
+			return QVariant(debt.mPayment.mDate.toString(Qt::ISODate));
+		}
+	}
+
+	if (role==Qt::ForegroundRole)
+	{
+		Debt debt = mCostSplitter->getDebt(index.row());
+//		Payment payment = mCostSplitter->getPayment(index.row());
+
+		if (index.column()==ciDEBITOR)
+		{
+			if (!mCostSplitter->getPersons().contains(debt.mPayment.mPerson))
+				return QBrush("red");
+		}
+		if (index.column()==ciCREDITOR)
+		{
+			if (!mCostSplitter->getPersons().contains(debt.mCreditor))
+				return QBrush("red");
 		}
 	}
 
@@ -97,7 +117,7 @@ bool DebtsTableModel::setData(const QModelIndex& index, const QVariant& value, i
 		}
 		if (index.column()==ciDATE)
 		{
-			debt.mPayment.mDate = value.toDate();
+			debt.mPayment.mDate = this->parseDateString(value.toString());
 		}
 
 		mCostSplitter->setDebt(index.row(), debt);
@@ -115,11 +135,6 @@ Qt::ItemFlags DebtsTableModel::flags(const QModelIndex& index) const
 //	return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-void DebtsTableModel::costSplitterChangedSlot()
-{
-	this->reset();
-}
-
 void DebtsTableModel::deleteRows(const std::set<int>& rows)
 {
 	for (std::set<int>::const_reverse_iterator iter=rows.rbegin(); iter!=rows.rend(); ++iter)
@@ -127,5 +142,39 @@ void DebtsTableModel::deleteRows(const std::set<int>& rows)
 		mCostSplitter->removeDebt(*iter);
 	}
 }
+
+void DebtsTableModel::onPasteFromClipboard()
+{
+	std::cout << "void DebtsTableModel::onPasteFromClipboard()" << std::endl;
+
+	QString clipText = QApplication::clipboard()->text();
+
+	QStringList lines = clipText.split(QRegExp("[\\n|\\r]"));
+
+	for (int i=0; i< lines.size(); ++i)
+	{
+		this->insertLineFromClipboard(lines[i]);
+	}
+}
+
+void DebtsTableModel::insertLineFromClipboard(QString line)
+{
+	QStringList elements = line.split(QRegExp("\t"));
+
+	// debitor, value, creditor, desc, date
+	Debt debt;
+	debt.mPayment.mDate = this->parseDateString(elements[0]);
+	if (elements.size()>1)
+		debt.mPayment.mPerson = elements[1];
+	if (elements.size()>2)
+		debt.mPayment.mValue = elements[2].toDouble();
+	if (elements.size()>3)
+		debt.mCreditor = elements[3];
+	if (elements.size()>4)
+		debt.mPayment.mDescription = elements[4];
+
+	mCostSplitter->addDebt(debt);
+}
+
 
 } // namespace bb

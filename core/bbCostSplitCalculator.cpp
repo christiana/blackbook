@@ -58,6 +58,7 @@ void CostSplitCalculator::save(QString filename)
 	XmlFile file;
 	this->addXml(file.document().documentElement());
 	file.save(filename);
+	std::cout << "Saved file " << filename.toStdString() << std::endl;
 }
 
 void CostSplitCalculator::addXml(QDomElement node)
@@ -77,12 +78,23 @@ void CostSplitCalculator::addXml(QDomElement node)
 
 void CostSplitCalculator::load(QString filename)
 {
-	XmlFile file;
-	if (!file.load(filename))
-		return;
+	mPersons.reset(new PersonList);
+	mEntries.clear();
 
-	QDomNode rootNode = file.document().namedItem("root");
-	this->parseXml(rootNode.toElement());
+	XmlFile file;
+	if (file.load(filename))
+	{
+		QDomNode rootNode = file.document().namedItem("root");
+		this->parseXml(rootNode.toElement());
+		std::cout << "Loaded file " << filename.toStdString() << std::endl;
+	}
+	else
+	{
+		std::cout << "Cleared" << std::endl;
+	}
+
+	emit calculatorChanged();
+
 }
 
 void CostSplitCalculator::parseXml(QDomElement node)
@@ -204,6 +216,25 @@ std::vector<boost::shared_ptr<ENTRY_TYPE> > CostSplitCalculator::getEntriesOfTyp
 			retval.push_back(current);
 	}
 	return retval;
+}
+
+bool CostSplitCalculator::verifyCalculations() const
+{
+	QStringList persons = getPersons();
+
+	double sum = 0;
+	for (int i=0; i<persons.size(); ++i)
+	{
+		sum += this->getBalance(persons[i]);
+	}
+
+	if (fabs(sum)>= 0.1)
+	{
+		std::cerr << QString("Summed balance of all persons are %1. Should be zero.").arg(sum).toStdString() << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 } // namespace bb

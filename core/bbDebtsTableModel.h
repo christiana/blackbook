@@ -1,7 +1,7 @@
 #ifndef BBDEBTSTABLEMODEL_H
 #define BBDEBTSTABLEMODEL_H
 
-#include <QAbstractTableModel>
+#include "bbTableModel.h"
 #include "boost/shared_ptr.hpp"
 #include <set>
 
@@ -16,11 +16,12 @@ typedef boost::shared_ptr<class CostSplitCalculator> CostSplitCalculatorPtr;
  * \date 31.07.2013
  * \author christiana
  */
-class DebtsTableModel : public QAbstractTableModel
+class DebtsTableModel : public TableModel
 {
 	Q_OBJECT
 public:
 	explicit DebtsTableModel(QObject *parent, CostSplitCalculatorPtr costSplitter);
+	virtual QString getTitle() { return "Debts"; }
 
 	virtual int rowCount(const QModelIndex& parent) const;
 	virtual int columnCount(const QModelIndex& parent) const;
@@ -32,21 +33,22 @@ public:
 	void deleteRows(const std::set<int>& rows);
 
 signals:
-
 public slots:
-	void costSplitterChangedSlot();
+	virtual void onPasteFromClipboard();
 private:
-	CostSplitCalculatorPtr mCostSplitter;
-
 	enum COLUMN_INDEX
 	{
-		ciDEBITOR = 0,
+		ciDATE = 0,
+		ciDEBITOR,
 		ciVALUE,
 		ciCREDITOR,
 		ciDESCRIPTION,
-		ciDATE,
 		ciCOUNT
 	};
+
+	void insertLineFromClipboard(QString line);
+
+
 };
 
 } // namespace bb

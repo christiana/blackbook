@@ -43,7 +43,7 @@ endif(APPLE)
 # Executable
 #-----------------------------------------------------------------------------
 
-QT4_ADD_RESOURCES(BBMAIN_SOURCE_FILES bbResources.qrc)
+QT5_ADD_RESOURCES(BBMAIN_SOURCE_FILES bbResources.qrc)
 set(BBMAIN_SOURCE_FILES bbMain.cpp ${BBMAIN_SOURCE_FILES})
 add_executable(BlackBook MACOSX_BUNDLE ${BBMAIN_SOURCE_FILES} )
 target_link_libraries(BlackBook bbCore)

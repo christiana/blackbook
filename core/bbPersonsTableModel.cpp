@@ -1,14 +1,15 @@
 #include "bbPersonsTableModel.h"
 #include "bbCostSplitCalculator.h"
+#include <iostream>
+#include <QApplication>
+#include <QClipboard>
 
 namespace bb
 {
 
 PersonsTableModel::PersonsTableModel(QObject *parent, CostSplitCalculatorPtr costSplitter) :
-	QAbstractTableModel(parent),
-	mCostSplitter(costSplitter)
+	TableModel(parent, costSplitter)
 {
-	connect(costSplitter.get(), SIGNAL(calculatorChanged()), this, SLOT(costSplitterChangedSlot()));
 }
 
 int PersonsTableModel::rowCount(const QModelIndex& parent) const
@@ -54,7 +55,9 @@ QVariant PersonsTableModel::data(const QModelIndex& index, int role) const
 		}
 		if (index.column()==2)
 		{
-			return QVariant::fromValue<double>(mCostSplitter->getBalance(name));
+			QString val = QString::number(mCostSplitter->getBalance(name), 'f', 2);
+			return val;
+//			return QVariant::fromValue<double>(mCostSplitter->getBalance(name));
 		}
 		return QVariant();
 	}
@@ -82,11 +85,6 @@ Qt::ItemFlags PersonsTableModel::flags(const QModelIndex& index) const
 	return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-void PersonsTableModel::costSplitterChangedSlot()
-{
-	this->reset();
-}
-
 void PersonsTableModel::deleteRows(const std::set<int>& rows)
 {
 	QStringList persons = mCostSplitter->getPersons();
@@ -95,5 +93,34 @@ void PersonsTableModel::deleteRows(const std::set<int>& rows)
 		mCostSplitter->removePerson(persons[*iter]);
 	}
 }
+
+void PersonsTableModel::onPasteFromClipboard()
+{
+	std::cout << "void PersonsTableModel::onPasteFromClipboard()" << std::endl;
+
+	QString clipText = QApplication::clipboard()->text();
+
+	QStringList lines = clipText.split(QRegExp("[\\n|\\r]"));
+
+	for (int i=0; i< lines.size(); ++i)
+	{
+		this->insertLineFromClipboard(lines[i]);
+	}
+}
+
+void PersonsTableModel::insertLineFromClipboard(QString line)
+{
+	QStringList elements = line.split(QRegExp("\t"));
+
+	// name, weight,
+	Person person;
+	person.mName = elements[0];
+	if (elements.size()>1)
+		person.mWeight = elements[1].toDouble();
+
+	mCostSplitter->addPerson(person.mName);
+	mCostSplitter->addWeight(person.mName, person.mWeight);
+}
+
 
 } // namespace bb

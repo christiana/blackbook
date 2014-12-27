@@ -1,14 +1,16 @@
 #include "bbPaymentsTableModel.h"
 #include "bbCostSplitCalculator.h"
+#include <QBrush>
+#include <iostream>
+#include <QApplication>
+#include <QClipboard>
 
 namespace bb
 {
 
 PaymentsTableModel::PaymentsTableModel(QObject *parent, CostSplitCalculatorPtr costSplitter) :
-	QAbstractTableModel(parent),
-	mCostSplitter(costSplitter)
+	TableModel(parent, costSplitter)
 {
-	connect(costSplitter.get(), SIGNAL(calculatorChanged()), this, SLOT(costSplitterChangedSlot()));
 }
 
 int PaymentsTableModel::rowCount(const QModelIndex& parent) const
@@ -73,7 +75,19 @@ QVariant PaymentsTableModel::data(const QModelIndex& index, int role) const
 		}
 		if (index.column()==ciDATE)
 		{
-			return QVariant::fromValue<QDate>(payment.mDate);
+			return QVariant(payment.mDate.toString(Qt::ISODate));
+//			return QVariant::fromValue<QDate>(payment.mDate);
+		}
+	}
+
+	if (role==Qt::ForegroundRole)
+	{
+		Payment payment = mCostSplitter->getPayment(index.row());
+
+		if (index.column()==ciPERSON)
+		{
+			if (!mCostSplitter->getPersons().contains(payment.mPerson))
+				return QBrush("red");
 		}
 	}
 
@@ -111,7 +125,8 @@ bool PaymentsTableModel::setData(const QModelIndex& index, const QVariant& value
 		}
 		if (index.column()==ciDATE)
 		{
-			payment.mDate = value.toDate();
+			payment.mDate = this->parseDateString(value.toString());
+//			payment.mDate = value.toDate();
 		}
 
 		mCostSplitter->setPayment(index.row(), payment);
@@ -157,17 +172,58 @@ Qt::ItemFlags PaymentsTableModel::flags(const QModelIndex& index) const
 //	return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-void PaymentsTableModel::costSplitterChangedSlot()
-{
-	this->reset();
-}
-
 void PaymentsTableModel::deleteRows(const std::set<int>& rows)
 {
 	for (std::set<int>::const_reverse_iterator iter=rows.rbegin(); iter!=rows.rend(); ++iter)
 	{
 		mCostSplitter->removePayment(*iter);
 	}
+}
+
+void PaymentsTableModel::onCopyToClipboard()
+{
+	std::cout << "void PaymentsTableModel::onCopyToClipboard()" << std::endl;
+}
+
+void PaymentsTableModel::onPasteFromClipboard()
+{
+	std::cout << "void PaymentsTableModel::onPasteFromClipboard()" << std::endl;
+
+	QString clipText = QApplication::clipboard()->text();
+
+	QStringList lines = clipText.split(QRegExp("[\\n|\\r]"));
+
+	for (int i=0; i< lines.size(); ++i)
+	{
+		this->insertLineFromClipboard(lines[i]);
+	}
+}
+
+
+void PaymentsTableModel::insertLineFromClipboard(QString line)
+{
+	QStringList elements = line.split(QRegExp("\t"));
+
+	// date, person, value, desc, participants
+	Payment payment;
+	payment.mDate = this->parseDateString(elements[0]);
+	if (elements.size()>1)
+		payment.mPerson = elements[1];
+	if (elements.size()>2)
+		payment.mValue = elements[2].toDouble();
+	if (elements.size()>3)
+		payment.mDescription = elements[3];
+
+	for (int i=4; i<elements.size(); ++i)
+	{
+		QString participant = this->getParticipantForColumn(i);
+		if (participant.isEmpty())
+			break;
+		if (elements[i].toInt())
+			payment.mParticipants << participant;
+	}
+
+	mCostSplitter->addPayment(payment);
 }
 
 } // namespace bb

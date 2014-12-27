@@ -1,7 +1,7 @@
 #ifndef BBPERSONSTABLEMODEL_H
 #define BBPERSONSTABLEMODEL_H
 
-#include <QAbstractTableModel>
+#include "bbTableModel.h"
 #include "boost/shared_ptr.hpp"
 #include <set>
 
@@ -15,12 +15,13 @@ typedef boost::shared_ptr<class CostSplitCalculator> CostSplitCalculatorPtr;
  * \date 31.07.2013
  * \author christiana
  */
-class PersonsTableModel : public QAbstractTableModel
+class PersonsTableModel : public TableModel
 {
 	Q_OBJECT
 public:
 	explicit PersonsTableModel(QObject *parent, CostSplitCalculatorPtr costSplitter);
-	
+	virtual QString getTitle() { return "Persons"; }
+
 	virtual int rowCount(const QModelIndex& parent) const;
 	virtual int columnCount(const QModelIndex& parent) const;
 	virtual QVariant data(const QModelIndex& index, int role) const;
@@ -33,9 +34,10 @@ public:
 signals:
 	
 public slots:
-	void costSplitterChangedSlot();
+	virtual void onPasteFromClipboard();
 private:
-	CostSplitCalculatorPtr mCostSplitter;
+	void insertLineFromClipboard(QString line);
+
 };
 
 } // namespace bb

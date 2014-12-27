@@ -5,14 +5,31 @@
 #include <QtGui>
 #include "boost/shared_ptr.hpp"
 #include <set>
+#include <QTableView>
+class QTableView;
 
 namespace bb
 {
+class TableModel;
 
 typedef boost::shared_ptr<class CostSplitCalculator> CostSplitCalculatorPtr;
 class PersonsTableModel;
 class PaymentsTableModel;
 class DebtsTableModel;
+
+class MyTableView : public QTableView
+{
+	Q_OBJECT
+public:
+	MyTableView(QWidget* parent=NULL) : QTableView(parent) {}
+	virtual ~MyTableView() {}
+	virtual void keyPressEvent(QKeyEvent* event);
+signals:
+	void copyToClipboard();
+	void pasteFromClipboard();
+private:
+	void onCopyToClipboard();
+};
 
 /**
  *
@@ -35,6 +52,9 @@ public slots:
 	void newDebtSlot();
 	void deleteRowSlot();
 	void modelResetSlot();
+	void newFileSlot();
+	void loadFileSlot();
+	void saveFileSlot();
 
 private:
 	QAction* mNewPersonAction;
@@ -42,14 +62,18 @@ private:
 	QAction* mNewDebtAction;
 	QAction* mDeleteRowAction;
 
+	QAction* mNewFileAction;
+	QAction* mSaveFileAction;
+	QAction* mLoadFileAction;
+
 	CostSplitCalculatorPtr mCostSplitter;
 	PersonsTableModel* mPersonsTableModel;
 	PaymentsTableModel* mPaymentsTableModel;
 	DebtsTableModel* mDebtsTableModel;
 
-	QTableView* mPersonsTable;
-	QTableView* mPaymentsTable;
-	QTableView* mDebtsTable;
+	MyTableView* mPersonsTable;
+	MyTableView* mPaymentsTable;
+	MyTableView* mDebtsTable;
 
 	void closeEvent(QCloseEvent *event);
 	void addAsDockWidget(QWidget* widget);
@@ -61,6 +85,10 @@ private:
 	void createDebtsGui();
 	void createActions();
 	void createToolbars();
+	MyTableView* createTableView(TableModel* model);
+	void loadFile(QString filename);
+
+	QString mCurrentFile;
 };
 
 }

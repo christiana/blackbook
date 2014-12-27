@@ -39,6 +39,7 @@ public:
 	double getWeight(QString name) const;
 	QStringList getPersons() const;
 	double getBalance(QString name) const;
+	bool verifyCalculations() const;
 
 	void addPayment(Payment payment);
 	void setPayment(int index, Payment payment);
