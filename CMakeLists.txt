@@ -13,12 +13,13 @@ include(bbUtilities)
 cx_initialize_Boost()
 cx_initialize_QT()
 
-add_subdirectory(testUtilities)
 add_subdirectory(core)
 
 include_directories(
 		${BlackBook_SOURCE_DIR}/core
 		)
+
+add_subdirectory(testing)
 
 #------------------------------------------------------------------------------
 # Installer stuff

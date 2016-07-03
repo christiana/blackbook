@@ -1,0 +1,27 @@
+---
+- name: provision cas_server
+  hosts: all
+  sudo: true
+  
+  tasks:
+# ----------------
+# Setup git
+# ----------------
+  - name: ensure git is installed
+    apt: name=git state=latest update_cache=yes
+    
+# ----------------
+# Setup /data volume
+# ----------------
+  - name: Build filesystem for /dev/xvdb
+    filesystem: fstype=ext4 dev=/dev/xvdb
+    when: not ansible_devices.xvdb.partitions
+
+  - name: Create /data
+    file: path=/data state=directory mode=0755
+
+  - name: Mount /dev/xvdb on /data (1/2)
+    mount: name=/data src=/dev/xvdb fstype=ext4 state=present
+
+  - name: Mount /dev/xvdb on /data (2/2)
+    command: "mount -a"
