@@ -1,13 +1,7 @@
 import costsplitter.trip
-#from pyserver import costsplitter
-
-def CHECK(statement):
-    if not (statement):
-        raise Exception('CHECK failed')
     
 class TestTrip:
     '''
-    Simple test fw - replace py pytest when internet reappears
     '''
         
     def test_add_persons(self):

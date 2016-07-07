@@ -16,16 +16,23 @@ class Payment:
         self.participants = participants
         self.date = date
     
-    
+
     
     
 class Trip:
     '''
     '''
-    def __init__(self):
+    def __init__(self, id=''):
         self._persons = []
         self._payments = []
-        pass
+        self.info = {}
+        self.info['id'] = id
+        self.info['name'] = id
+        self.info['description'] = ''
+        self.info['date'] = datetime.date.today()
+    
+    def get_info(self):
+        return self.info
     
     def add_person(self, name):
         self._persons.append(name)
