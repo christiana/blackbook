@@ -3,14 +3,24 @@ import costsplitter.trip
 class TestTrip:
     '''
     '''
+    def __init__(self):
+        '''
+        create some nice test data
+        '''
+        self.trip = costsplitter.trip.Trip()
+        self.persons = ['CA', 'SAH', 'HEA']
+
+    def fill_trip(self):
+        '''
+        insert the test data into the trip
+        '''
+        for person in self.persons:
+            self.trip.add_person(person)
         
     def test_add_persons(self):
-        persons = ['CA', 'SAH', 'HEA']
-        trip = costsplitter.trip.Trip()
-        for person in persons:
-            trip.add_person(person)
+        self.fill_trip()
         
-        assert trip.get_persons() == persons
+        assert self.trip.get_persons() == self.persons
 
     def test_remove_person(self):
         persons = ['CA', 'SAH', 'HEA']
