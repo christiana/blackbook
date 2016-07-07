@@ -47,6 +47,9 @@ class Trip:
     def add_payment(self, payment):
         self._payments.append(payment)
         
+    def remove_payment(self, index):
+        del self._payments[index]
+
     def get_payment(self, index):
         return self._payments[index]
     
