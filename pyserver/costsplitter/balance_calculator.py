@@ -15,9 +15,9 @@ class BalanceCalculator:
     def calculate_balance_for_person_per_payment(self, person, payment):
         retval = 0.0
         if person['id'] == payment['creditor']:
-            retval += payment['amount']
+            retval += self.get_amount_internal(payment)
         fraction = self.get_fraction_for_person(person, payment)
-        retval -= fraction * payment['amount'] 
+        retval -= fraction * self.get_amount_internal(payment) 
         return retval
     
     def get_fraction_for_person(self, person, payment):
@@ -30,6 +30,9 @@ class BalanceCalculator:
                 if p['id'] == person['id']:
                     weight = p['weight']
         return weight/totalweight        
+        
+    def get_amount_internal(self, payment):
+        return payment['amount'] *  payment['rate']
         
     def get_participants_for_payment(self, payment):
         if len(payment['participants'])==0:

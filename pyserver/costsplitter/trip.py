@@ -68,6 +68,7 @@ class Trip:
                        'type':'split',
                        'amount':0,
                        'description':"",
+                       'rate':1.0,
                        'participants':[],
                        'date':datetime.date.today() }
             self._payments.append(entry)
