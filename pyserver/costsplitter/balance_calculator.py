@@ -27,8 +27,8 @@ class BalanceCalculator:
         for p in self.persons:
             if p['id'] in participants:
                 totalweight += p['weight']
-            if p['id'] == person['id']:
-                weight = p['weight']
+                if p['id'] == person['id']:
+                    weight = p['weight']
         return weight/totalweight        
         
     def get_participants_for_payment(self, payment):

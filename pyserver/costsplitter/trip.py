@@ -65,6 +65,7 @@ class Trip:
             payment.pop('id', '') # ignore the input suggested id.
             entry = {'id':len(self._payments),
                        'creditor':"",
+                       'type':'split',
                        'amount':0,
                        'description':"",
                        'participants':[],

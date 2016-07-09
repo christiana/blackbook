@@ -1,5 +1,6 @@
 import costsplitter.trip
 import numpy.testing
+import pprint
     
 class TestTrip:
     '''
@@ -76,3 +77,28 @@ class TestTrip:
         numpy.testing.assert_almost_equal(self.trip.get_person('CA')['balance'], -400)
         numpy.testing.assert_almost_equal(self.trip.get_person('SAH')['balance'], 500)
         numpy.testing.assert_almost_equal(self.trip.get_person('HEA')['balance'], -100)
+        
+    def test_add_payment_participant_subset(self):
+        self.init_data()  
+        self.fill_trip()
+        self.trip.add_payment({'id':0, 'participants':['CA','SAH']})
+        self.trip.add_payment({'id':1, 'participants':['CA','SAH']})
+        pprint.pprint(self.trip._payments)
+        numpy.testing.assert_almost_equal(self.trip.get_person('CA')['balance'], -150)
+        numpy.testing.assert_almost_equal(self.trip.get_person('SAH')['balance'], 150)
+        numpy.testing.assert_almost_equal(self.trip.get_person('HEA')['balance'], 0)
+
+    def test_add_debt_and_payment_check_balance(self):
+        self.init_data()  
+        self.payments = [{'creditor':'CA', 
+                          'type':'debt',
+                          'amount':300, 
+                          'participants':['SAH'],
+                          'description':'Test payment of 300E.'},
+                         {'creditor':'SAH', 
+                          'amount':600, 
+                          'description':'Test payment of 600E.'}]
+        self.fill_trip()
+        numpy.testing.assert_almost_equal(self.trip.get_person('CA')['balance'], 100)
+        numpy.testing.assert_almost_equal(self.trip.get_person('SAH')['balance'], 100)
+        numpy.testing.assert_almost_equal(self.trip.get_person('HEA')['balance'], -200)
