@@ -1,14 +1,21 @@
 import costsplitter.trip
+import numpy.testing
     
 class TestTrip:
     '''
     '''
-    def __init__(self):
+    def init_data(self):
         '''
         create some nice test data
         '''
         self.trip = costsplitter.trip.Trip()
         self.persons = ['CA', 'SAH', 'HEA']
+        self.payments = [{'creditor':'CA', 
+                          'amount':300, 
+                          'description':'Test payment of 300E.'},
+                         {'creditor':'SAH', 
+                          'amount':600, 
+                          'description':'Test payment of 600E.'}]
 
     def fill_trip(self):
         '''
@@ -16,51 +23,56 @@ class TestTrip:
         '''
         for person in self.persons:
             self.trip.add_person(person)
+        for payment in self.payments:
+            self.trip.add_payment(payment)
         
+    def _assert_payments_equal(self, a, b):
+        '''
+        find the subset c of b contained in a, 
+        then check equality for a and c.
+        '''
+        c = {x:b[x] for x in a if x in b}
+        assert a == c
+
     def test_add_persons(self):
-        self.fill_trip()
-        
+        self.init_data()        
+        self.fill_trip()        
         assert self.trip.get_persons() == self.persons
 
     def test_remove_person(self):
-        persons = ['CA', 'SAH', 'HEA']
-        trip = costsplitter.trip.Trip()
-        for person in persons:
-            trip.add_person(person)
-        trip.remove_person('SAH')
-        
-        assert trip.get_persons() == ['CA', 'HEA']
+        self.init_data()        
+        self.fill_trip()        
+        self.trip.remove_person('SAH')        
+        assert self.trip.get_persons() == ['CA', 'HEA']
         
     def test_add_payments(self):
-        trip = costsplitter.trip.Trip()
-        persons = ['CA', 'SAH', 'HEA']
-        for person in persons:
-            trip.add_person(person)
-        payments = [costsplitter.trip.Payment(person='CA', amount=300, description='Test payment of 300E.'),
-                    costsplitter.trip.Payment(person='SAH', amount=600, description='Test payment of 600E.')]
-        for payment in payments:
-            trip.add_payment(payment)
-
-        assert len(payments) == trip.get_payment_count()
-        for i in range(len(payments)):
-            assert payments[i] == trip.get_payment(i)
-            
+        self.init_data()        
+        self.fill_trip()
+        assert len(self.payments) == self.trip.get_payment_count()
+        for i in range(len(self.payments)):
+            self._assert_payments_equal(self.payments[i], self.trip.get_payment(i))
+                
     def test_remove_payment(self):
-        trip = costsplitter.trip.Trip()
-        persons = ['CA', 'SAH', 'HEA']
-        for person in persons:
-            trip.add_person(person)
-        payments = [costsplitter.trip.Payment(person='CA', amount=300, description='Test payment of 300E.'),
-                    costsplitter.trip.Payment(person='SAH', amount=600, description='Test payment of 600E.')]
-        for payment in payments:
-            trip.add_payment(payment)
+        self.init_data()        
+        self.fill_trip()
+        self.trip.remove_payment(0)
+        assert len(self.payments)-1 == self.trip.get_payment_count()
+        for i in range(len(self.payments)-1):
+            self._assert_payments_equal(self.payments[i+1], self.trip.get_payment(i))
+            #assert self.payments[i+1] == self.trip.get_payment(i)
             
-        trip.remove_payment(0)
-
-        assert len(payments)-1 == trip.get_payment_count()
-        for i in range(len(payments)-1):
-            assert payments[i+1] == trip.get_payment(i)
-
-#        payments.push_back(Payment("CA", 300, "Test payment of 300.", QStringList(), QDate(2013, 07, 29)));
-#        payments.push_back(Payment("SAH", 600, "Test payment of 600.", QStringList(), QDate(2013, 07, 30)));
+    def test_add_payment_check_balance(self):
+        self.init_data()        
+        self.fill_trip()
+        numpy.testing.assert_almost_equal(self.trip.get_person('CA')['balance'],0)
+        numpy.testing.assert_almost_equal(self.trip.get_person('SAH')['balance'], 300)
+        numpy.testing.assert_almost_equal(self.trip.get_person('HEA')['balance'], -300)
         
+    def test_add_payment_check_balance_weighted_person(self):
+        self.init_data()  
+        self.fill_trip()
+        self.trip.add_person({'id':'CA', 'weight':7})
+        # total weight of 9 for 900euro
+        numpy.testing.assert_almost_equal(self.trip.get_person('CA')['balance'], -400)
+        numpy.testing.assert_almost_equal(self.trip.get_person('SAH')['balance'], 500)
+        numpy.testing.assert_almost_equal(self.trip.get_person('HEA')['balance'], -100)
