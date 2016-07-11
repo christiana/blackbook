@@ -10,11 +10,8 @@ import help_text
 import pyserver.costsplitter.trip_manager
 import json
 import StringIO
+import re
 
-#
-#
-#
-#
 #
 #
 #
@@ -27,15 +24,40 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         #self.trips = pyserver.costsplitter.trip_manager.TripManager()
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
 
+    def print_info(self):
+        print '>>>incoming: ', self.command, ' - ', self.path
+    
+    def path_matches(self, expr):
+        retval = re.match(expr, self.path)
+        if retval:
+            print "************HIT ", expr, " vs ", self.path
+        else:
+            print "****--------NO HIT ", expr, " vs ", self.path
+        return retval 
+    
+#    def get_trip_id(self):
+#        p = self.path_matches('/trips/(.*)(?<!/)$')
+#        if p:
+#            print "groups", p.groups()
+#            return True
+
     def do_HEAD(self):
+        self.print_info()
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
         
     def do_GET(self):
         """Respond to a GET request."""
-        if self.path=='/':
+        self.print_info()
+#        if self.path=='/':
+        if self.path_matches('/$'):
             return self.handle_get_root()
+        if self.path_matches('/trips$'):
+            return self.handle_get_trips()
+        if self.path_matches('/trips/.*(?<!/)$'):
+            return self.handle_get_trip()
+        return self.handle_failure()
 
         if self.get_group_type()=='persons':
             return self.handle_group_persons()
@@ -43,11 +65,13 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return self.handle_group_payments()
         if self.get_group_type() is not None:
             return self.handle_failure()
-        return self.handle_group_trips()
+        return self.handle_get_group_trips()
 
     def do_POST(self):
         """Respond to a POST request."""
-        if self.path=='/trips':
+        self.print_info()
+        if self.path_matches('/trips$'):
+        #if self.path=='/trips':
             return self.handle_post_trip()
             
     def handle_post_trip(self):
@@ -75,8 +99,10 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(indata))
     
-                    
-    def handle_group_trips(self):
+    def handle_get_trip(self):
+        id = self.get_trip_id()
+                            
+    def handle_get_group_trips(self):
         if self.path == '/trips':
             return self.handle_get_trips()
         trip_name = self.get_trip_name()
@@ -89,24 +115,25 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def handle_group_payments(self):
         pass
     
-    def get_trip_name(self):
+    def get_trip_id(self):
         'get the trip id/name'
         comps = self.path.split('/')
-        if len(comps)>=2 and comps[1]=='trips':
+        if len(comps)>=3 and comps[1]=='trips':
             return comps[2]
         return None
 
     def get_group_type(self):
         'return group type, such as person or payment'
         comps = self.path.split('/')
-        if len(comps)>=3 and comps[1]=='trips':
+        print "comps", comps
+        if len(comps)>=4 and comps[1]=='trips':
             return comps[3]
         return None
 
     def get_group_name(self):
         'return name of group, either id of person or id of payment'
         comps = self.path.split('/')
-        if len(comps)>=4 and comps[1]=='trips':
+        if len(comps)>=5 and comps[1]=='trips':
             return comps[4]
         return None
         
