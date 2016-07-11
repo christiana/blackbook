@@ -1,3 +1,5 @@
+package blackbook
+
 import groovyx.net.http.RESTClient
 import spock.lang.Specification
 import spock.lang.Stepwise
