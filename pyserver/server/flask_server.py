@@ -18,9 +18,9 @@ def handle_index():
     return reply
 
 @app.route('/trips', methods=['GET'])
-def handle_get_trips(self):
+def handle_get_trips():
     ""
-    trips = self.server.trips.get_trips()
+    trips = app.trips.get_trips()
     print "handle_get_trips", trips
     return trips
     

@@ -31,9 +31,14 @@ class TestFlaskServer:
     @server_call
     def test_index(self):    
         r = self.client.get('/')
+        #print 'response: ', r.data
+        assert 'Black Book' in r.data
+
+    @server_call
+    def test_get_trips(self):    
+        r = self.client.get('/trips')
         print 'response: ', r.data
         assert 'Black Book' in r.data    
-
 
 #def test_fail():
 #    assert False
