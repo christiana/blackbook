@@ -1,4 +1,6 @@
 #!/usr/bin/bash
 
-export FLASK_APP=./pyserver/server/flask_server.py
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export FLASK_APP=$DIR/server/flask_server.py
+
 flask run --port 27222
