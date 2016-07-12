@@ -8,7 +8,6 @@ def getHelpPageBody():
 <body>
 <h1>Black Book REST API</h1>
 <p>
-Arguments are passed using JSON format.
 </p>
 
 <h2>Methods</h2>
@@ -35,14 +34,14 @@ Arguments are passed using JSON format.
     <td>/trips</td>
     <td>Get list of trips</td>
     <td></td>
-    <td>text/json list of id:string</td>
+    <td>application/json list of id:string</td>
 </tr>
 <tr>
-    <td>PUT</td>
+    <td>POST</td>
     <td>/trips</td>
     <td>Generate new trip</td>
     <td>trip_object<br>(containing suggested trip_id)</td>
-    <td>text/json trip_id:string</td>
+    <td>application/json trip_id:string</td>
 </tr>
 <tr>
     <td>GET</td>
@@ -52,7 +51,7 @@ Arguments are passed using JSON format.
     <td>trip_object</td>
 </tr>
 <tr>
-    <td>POST</td>
+    <td>PUT</td>
     <td>/trips/{trip}</td>
     <td>Update trip</td>
     <td>trip_object</td>
@@ -72,17 +71,24 @@ Arguments are passed using JSON format.
     <td>/trips/{trip}/persons</td>
     <td>Get list of persons</td>
     <td></td>
-    <td>text/json list of id:string</td>
+    <td>application/json list of id:string</td>
 </tr>
 <tr>
-    <td>PUT</td>
+    <td>POST</td>
     <td>/trips/{trip}/persons</td>
     <td>add a person</td>
     <td>person_object<br>(fails if id already exist)</td>
     <td></td>
 </tr>
 <tr>
-    <td>POST</td>
+    <td>GET</td>
+    <td>/trips/{trip}/persons/{person}</td>
+    <td>Get person</td>
+    <td></td>
+    <td>person_object</td>
+</tr>
+<tr>
+    <td>PUT</td>
     <td>/trips/{trip}/persons/{person}</td>
     <td>Update person</td>
     <td>person_object</td>
@@ -102,17 +108,24 @@ Arguments are passed using JSON format.
     <td>/trips/{trip}/payments</td>
     <td>Get list of payments ids</td>
     <td></td>
-    <td>text/json list of id:string</td>
-</tr>
-<tr>
-    <td>PUT</td>
-    <td>/trips/{trip}/payments</td>
-    <td>New payment</td>
-    <td>payment_object<br>(fails if id already exist). Use id="" to request a new id</td>
-    <td>text/json id:string</td>
+    <td>application/json list of id:string</td>
 </tr>
 <tr>
     <td>POST</td>
+    <td>/trips/{trip}/payments</td>
+    <td>New payment</td>
+    <td>payment_object<br>(fails if id already exist). Use id="" to request a new id</td>
+    <td>application/json id:string</td>
+</tr>
+<tr>
+    <td>GET</td>
+    <td>/trips/{trip}/payments/{payment}</td>
+    <td>Get payment</td>
+    <td></td>
+    <td>payment_object</td>
+</tr>
+<tr>
+    <td>PUT</td>
     <td>/trips/{trip}/payments/{payment}</td>
     <td>Update payment</td>
     <td>payment_object</td>
@@ -140,6 +153,11 @@ Arguments are passed using JSON format.
 
 
 
+
+
+
+
+
 <h2>Objects</h2>
 <table border=\"1\">
 <tr>
@@ -151,19 +169,49 @@ Arguments are passed using JSON format.
 <tr>
     <td>trip_object</td>
     <td>One trip</td>
-    <td>id, name, date, description :string</td>
+    <td>id:string,<br> name:string,<br> date:iso_date,<br> description:string</td>
 </tr>
 <tr>
     <td>person_object</td>
     <td>One person in the context of a trip. Name, weight (how much of the total should be paid by the person), balance (how much should the person pay or get back).</td>
-    <td>text/json: id, name, weight, balance.<br>Balance is readonly</td>
+    <td>application/json: 
+        id:string,<br>
+        name:string,<br>
+        weight:float,<br> 
+        balance:float,readonly.</td>
 </tr>
 <tr>
     <td>payment_object</td>
-    <td>One payment made by one person (creaditor) on behalf of a subset of the others.</td>
-    <td>text/json: id, creditor, amount, description, date, participants.<br>No participants means all.</td>
+    <td>One payment made by one person (creditor) on behalf of a subset of the others (participants).</td>
+    <td>application/json:<br> 
+        id:string,<br> 
+        type:payment_type,<br> 
+        creditor:string,<br> 
+        amount:float,<br> 
+        currency:currency_type,<br> 
+        rate:rate_type,<br> 
+        description:string,<br> 
+        date:iso_date,<br> 
+        participants:list_of_person_id.<br>
+        No participants means all.</td>
+</tr>
+<tr>
+    <td>payment_type</td>
+    <td>Type of payment. <br>type=split: Amount should be split among all participants according to weight.<br>type=debt: participants owes the creditor the given amount. </td>
+    <td>string, One of {split, debt}. </td>
+</tr>
+<tr>
+    <td>currency_type</td>
+    <td>The type of currency used in a payment.</td>
+    <td>text, use standard acronyms (NOK, EUR, ...). Default is none.</td>
+</tr>
+<tr>
+    <td>rate_type</td>
+    <td>Exchange rate for the given currency, from payment currency to internal currency.</td>
+    <td>Default is 1.</td>
 </tr>
 </table>
+
 
 </body>
         '''

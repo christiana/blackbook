@@ -18,12 +18,12 @@ class BlackbookAPI extends Specification {
           resp.status == 200
     }
 
-    def "GET /trips returns text/json content-type"() {
+    def "GET /trips returns application/json content-type"() {
         when:
           def resp = client.get path: '/trips'
 
         then:
-          resp.contentType == 'text/json'
+          resp.contentType == 'application/json'
 
     }
 
