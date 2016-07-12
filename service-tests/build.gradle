@@ -3,38 +3,121 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'groovy'
 
+private File stampLockFile(File pidFile, Process process) {
+    pidFile << extractPidFromProcess(process)
+}
+
+private int extractPidFromProcess(Process process) {
+    def pidField = process.class.getDeclaredField('pid')
+    pidField.accessible = true
+
+    return pidField.getInt(process)
+}
+
+boolean waitUntilIsReadyOrEnd(Process process, String readyString) {
+    def line
+    def reader = new BufferedReader(new InputStreamReader(process.getInputStream()))
+    boolean isReady = false
+    while (!isReady && (line = reader.readLine()) != null) {
+        logger.quiet line
+        if (line.contains(readyString)) {
+            isReady = true
+        }
+    }
+    isReady
+}
+
+File getPidFile() {
+    return new File('.', '.pid.lock')
+}
+
+private void waitToProcessReadyOrClosed(Process process, String readyString) {
+    boolean isReady = waitUntilIsReadyOrEnd(process, readyString)
+    if (isReady) {
+        stampLockFile(pidFile, process)
+    } else {
+        checkForAbnormalExit(process)
+    }
+}
+
+private void checkForAbnormalExit(Process process) {
+    try {
+        process.waitFor()
+        def exitValue = process.exitValue()
+        if (exitValue) {
+            throw new GradleException("The process terminated unexpectedly - status code ${exitValue}")
+        }
+    } catch (IllegalThreadStateException ignored) { }
+}
+
+private Process buildProcess(List<String> command, Map<String, String> environment) {
+    def builder = new ProcessBuilder(command)
+    builder.redirectErrorStream(true)
+    builder.directory(new File('.'))
+    builder.environment() environment
+    builder.start()
+}
+
 task createVirtualEnv() {
-    ext.destDir = new File(buildDir, 'python-venv')
-    outputs.dir destDir
+    ext.pythonEnvDir = new File(buildDir, 'python-venv')
+    outputs.dir pythonEnvDir
 
     doLast {
         exec {
             executable = "virtualenv"
-            args = ["${destDir.path}"]
+            args = ["${pythonEnvDir.path}"]
 
         }
         exec {
-            executable = "${destDir.path}/bin/pip"
+            executable = "${pythonEnvDir.path}/bin/pip"
             args = ['install', '-r', '../pyserver/requirements.txt']
         }
 
     }
 }
 
-task startApp() {
-    println "---- Starting python server ----"
+task startServer(dependsOn: createVirtualEnv) {
+//if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+//} else {
+//}
+    ext.flaskExecutable = new File(buildDir, 'python-venv/bin/flask')
+    ext.environment = [FLASK_APP : "../pyserver/server/flask_server.py"]
+    ext.command = [flaskExecutable.path, 'run', '--port', '27222']
+
+    def pidFile = getPidFile()
+    if (pidFile.exists()) throw new GradleException("Server already running!")
+
+    println "---- Running python server ----"
+    println "${command}"
+    println "env: ${environment}"
+
+    def process = buildProcess(command, environment)
+    waitToProcessReadyOrClosed(process, "Running on")
+
+    println "--------------------------------"
+
 }
 
-task stopApp() {
-    println "---- Stopping python server ----"
-}
+task stopServer() {
+    doLast {
+        println "---- Stopping python server ----"
+        def pidFile = getPidFile()
+        if(!pidFile.exists()) throw new GradleException("No server running!")
 
-startApp.dependsOn createVirtualEnv
+        def pid = pidFile.text
+        def process = "kill $pid".execute()
+
+        try {
+            process.waitFor()
+        } finally {
+            pidFile.delete()
+        }
+    }
+}
 
 test.outputs.upToDateWhen {false}
-
-test.dependsOn startApp
-test.finalizedBy stopApp
+test.dependsOn startServer
+test.finalizedBy stopServer
 
 repositories {
     mavenCentral()
@@ -45,6 +128,4 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.spockframework', name: 'spock-core', version: '1.0-groovy-2.4'
     testCompile group: 'org.codehaus.groovy.modules.http-builder', name: 'http-builder', version: '0.7.1'
-
-
 }
