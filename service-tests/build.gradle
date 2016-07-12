@@ -3,8 +3,39 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'groovy'
 
+
+task createVirtualEnv() {
+    ext.destDir = new File(buildDir, 'python-venv')
+    outputs.dir destDir
+
+    doLast {
+        exec {
+            executable = "virtualenv"
+            args = ["${destDir.path}"]
+
+        }
+        exec {
+            executable = "${destDir.path}/bin/pip"
+            args = ['install', '-r', '../pyserver/requirements.txt']
+        }
+
+    }
+}
+
+task startApp() {
+    println "---- Starting python server ----"
+}
+
+task stopApp() {
+    println "---- Stopping python server ----"
+}
+
+startApp.dependsOn createVirtualEnv
+
 // Defines the added directories that will be tracked to decide if tests are UP-TO-DATE
 test.inputs.sourceDir('../pyserver')
+test.dependsOn startApp
+test.finalizedBy stopApp
 
 repositories {
     mavenCentral()
