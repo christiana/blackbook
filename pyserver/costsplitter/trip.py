@@ -16,6 +16,9 @@ class Trip:
     def get_info(self):
         return self.info
     
+    def set_info(self, info):
+        self.info.update(info)
+    
     def add_person(self, person):
         '''
         add a new person.
