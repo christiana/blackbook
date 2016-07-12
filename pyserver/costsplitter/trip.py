@@ -11,7 +11,7 @@ class Trip:
         self.info['id'] = id
         self.info['name'] = id
         self.info['description'] = ''
-        self.info['date'] = datetime.date.today()
+        self.info['date'] = datetime.date.today().isoformat()
     
     def get_info(self):
         return self.info
@@ -73,7 +73,7 @@ class Trip:
                        'description':"",
                        'rate':1.0,
                        'participants':[],
-                       'date':datetime.date.today() }
+                       'date':datetime.date.today().isoformat() }
             self._payments.append(entry)
         entry.update(payment)
         

@@ -42,7 +42,7 @@ class TestFlaskServer:
         assert len(json.loads(r.data))==0
 
     @server_call
-    def test_post_trip(self):
+    def test_post_named_trip(self):
         trip_id = 'trip1'
         r = self.client.post('/trips', data=json.dumps({'id':trip_id}), content_type = 'application/json')
         #print "got response from server:"
@@ -56,16 +56,28 @@ class TestFlaskServer:
         assert 'trip1' in returned_trips
 
     @server_call
+    def test_post_unnamed_trip(self):
+        trip_name = 'A brand new trip'
+        r = self.client.post('/trips', data=json.dumps({'name':trip_name}), content_type = 'application/json')
+        #print "got response from server:"
+        #print json.loads(r.data)
+        trip_id = json.loads(r.data)['id']
+        
+        r = self.client.get('/trips/'+trip_id)
+        returned_trip = json.loads(r.data)
+        #print "got response from server:"
+        #print returned_trip
+        assert returned_trip['name'] == trip_name
+
+    @server_call
     def test_get_nonexistent_trip(self):
         trip_id = 'bad_trip'
         r = self.client.get('/trips/'+trip_id)
-        print "got response from server:"
+        #print "got response from server:"
 #        print "data : ", help(r)
-        print "status : ", r.status
-        print "status_code : ", r.status_code
-        print "data : ", r.data
-        #print r.json()
-        #assert r.json()
+        #print "status : ", r.status
+        #print "status_code : ", r.status_code
+        #print "data : ", r.data
         assert r.status_code == httplib.NOT_FOUND
 
     @server_call

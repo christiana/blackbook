@@ -26,15 +26,15 @@ def handle_get_trips():
 
 @app.route('/trips', methods=['POST'])
 def handle_post_trip():
-    if not flask.request.json or not 'id' in flask.request.json:
-        flask.abort(httplib.BAD_REQUEST)
+#    if not flask.request.json or not 'id' in flask.request.json:
+#        flask.abort(httplib.BAD_REQUEST)
     id = app.trips.add_trip(flask.request.json)
     return flask.jsonify({'id': id}), httplib.CREATED
 
 @app.route('/trips/<string:trip_id>', methods=['PUT', 'GET', 'DELETE'])
 def handle_trip(trip_id):
     trip = app.trips.get_trip(trip_id)
-    print "trip", trip    
+    #print "trip", trip    
     if not trip:
         flask.abort(httplib.NOT_FOUND)
     if flask.request.method=='PUT':
