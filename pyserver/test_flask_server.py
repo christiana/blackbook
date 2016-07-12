@@ -8,6 +8,7 @@ import requests
 import pytest
 import json
 import server.flask_server
+import httplib
 
 def server_call(func):
     '''
@@ -54,5 +55,49 @@ class TestFlaskServer:
         assert len(returned_trips)==1
         assert 'trip1' in returned_trips
 
-#def test_fail():
-#    assert False
+    @server_call
+    def test_get_nonexistent_trip(self):
+        trip_id = 'bad_trip'
+        r = self.client.get('/trips/'+trip_id)
+        print "got response from server:"
+#        print "data : ", help(r)
+        print "status : ", r.status
+        print "status_code : ", r.status_code
+        print "data : ", r.data
+        #print r.json()
+        #assert r.json()
+        assert r.status_code == httplib.NOT_FOUND
+
+    @server_call
+    def test_post_put_trip(self):
+        trip_id = 'trip1'
+        r = self.client.post('/trips', 
+                             data=json.dumps({'id':trip_id}), 
+                             content_type = 'application/json')
+        
+        input_trip = {'id':trip_id, 'description':'descriptive string'}
+        r = self.client.put('/trips/trip1', 
+                            data=json.dumps(input_trip),
+                            content_type = 'application/json')
+
+        r = self.client.get('/trips/trip1')
+        returned_trip = json.loads(r.data)
+        assert returned_trip['id'] == input_trip['id']
+        assert returned_trip['description'] == input_trip['description']
+
+    @server_call
+    def test_delete_trip(self):
+        r = self.client.post('/trips', 
+                             data=json.dumps({'id':'trip1'}), 
+                             content_type = 'application/json')
+
+        r = self.client.get('/trips')
+        returned_trips = json.loads(r.data)
+        assert len(returned_trips)==1
+        
+        r = self.client.delete('/trips/trip1')
+
+        r = self.client.get('/trips')
+        returned_trips = json.loads(r.data)
+        assert len(returned_trips)==0
+        
