@@ -11,35 +11,36 @@ import spock.lang.Stepwise
 class BlackbookAPI extends Specification {
 
     def client = new RESTClient('http://localhost:27222')
+    def id
 
     def "GET /trips returns status 200"() {
         when:
-          def resp = client.get path: '/trips'
+          def response = client.get path: '/trips'
 
         then:
-          resp.status == 200
+          response.status == 200
     }
 
     def "GET /trips returns application/json content-type"() {
         when:
-          def resp = client.get path: '/trips'
+          def response = client.get path: '/trips'
 
         then:
-          resp.contentType == 'application/json'
+          response.contentType == 'application/json'
 
     }
 
     def "GET /trips returns an empty list"() {
         when:
-          def resp = client.get path: '/trips'
+          def response = client.get path: '/trips'
 
         then:
-          resp.data instanceof List
-          resp.data.size() == 0
+          response.data instanceof List
+          response.data.size() == 0
 
     }
 
-    def "GET none existing trip returns 404 NOT FOUND"() {
+    def "GET /trips/[id] returns 404 NOT FOUND when trip does not exist "() {
         when:
           client.get path: '/trips/1'
 
@@ -48,13 +49,40 @@ class BlackbookAPI extends Specification {
           ex.response.status == 404
     }
 
-    def "GET none existing trip returns application/json content-type"() {
+    def "GET /trips/[id] returns application/json content-type when trip does not exist "() {
         when:
           client.get path: '/trips/1'
 
         then:
           def ex = thrown(HttpResponseException)
           ex.response.contentType == 'application/json'
+    }
+
+    def "POST /trips returns 201 CREATED and contains created object id"() {
+        when:
+          def response = client.post path: '/trips', body: [
+                  name: "Første tur",
+                  date: "2016-07-12",
+                  description: "En fin tur til ålborg"
+          ]
+          id = response.data.id
+
+        then:
+          id
+          response.status == 201
+
+    }
+
+    def "GET /trips/[id] returns trips object"() {
+        when:
+          def response = client.get path: "/trips$id"
+
+        then:
+          response.status == 200
+          response.data.id == id
+          response.data.name == "Første tur"
+          response.data.date == "2016-07-12"
+          response.data.description == "En fin tur til ålborg"
     }
 
 }
