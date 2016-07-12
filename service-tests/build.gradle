@@ -3,7 +3,6 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'groovy'
 
-
 task createVirtualEnv() {
     ext.destDir = new File(buildDir, 'python-venv')
     outputs.dir destDir
@@ -32,8 +31,8 @@ task stopApp() {
 
 startApp.dependsOn createVirtualEnv
 
-// Defines the added directories that will be tracked to decide if tests are UP-TO-DATE
-test.inputs.sourceDir('../pyserver')
+test.outputs.upToDateWhen {false}
+
 test.dependsOn startApp
 test.finalizedBy stopApp
 
