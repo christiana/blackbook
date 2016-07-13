@@ -97,5 +97,37 @@ def handle_person(trip_id, person_id):
         return flask.jsonify({'id': person_id}), httplib.ACCEPTED
 ################## PERSONS END ##############################################
 
+################## PAYMENTS BEGIN ##############################################
+@app.route('/trips/<trip_id>/payments', methods=['GET'])
+def handle_get_payments(trip_id):
+    trip = get_trip(trip_id)
+    payments = trip.get_payments()
+    return flask.jsonify(payments)
+
+@app.route('/trips/<trip_id>/payments', methods=['POST'])
+def handle_post_payment():
+    trip = get_trip(trip_id)
+    id = trip.add_payments(flask.request.json)
+    return flask.jsonify({'id': id}), httplib.CREATED
+
+@app.route('/trips/<trip_id>/payments/<payment_id>', methods=['PUT', 'GET', 'DELETE'])
+def handle_payment(trip_id, payment_id):
+    trip = get_trip(trip_id)
+    payment = trip.get_payment(payment_id)
+    if not payment:
+        flask.abort(httplib.NOT_FOUND)
+    if flask.request.method=='PUT':
+        payment = flask.request.json
+        payment['id'] = payment_id
+        trip.add_payment(payment)
+        return flask.jsonify({'id': payment_id}), httplib.ACCEPTED
+    if flask.request.method=='GET':
+        return flask.jsonify(payment)
+    if flask.request.method=='DELETE':
+        trip.remove_payment(payment_id)
+        return flask.jsonify({'id': payment_id}), httplib.ACCEPTED
+################## PAYMENTS END ##############################################
+
+
 if __name__ == '__main__':
     app.run(debug=True)
