@@ -47,19 +47,25 @@ private void checkForAbnormalExit(Process process) {
         if (exitValue) {
             throw new GradleException("The process terminated unexpectedly - status code ${exitValue}")
         }
-    } catch (IllegalThreadStateException ignored) { }
+    } catch (IllegalThreadStateException ignored) {
+    }
 }
 
 private Process buildProcess(List<String> command, Map<String, String> environment) {
     def builder = new ProcessBuilder(command)
     builder.redirectErrorStream(true)
     builder.directory(new File('.'))
-    builder.environment() environment
+    def env = builder.environment()
+    if (env) {
+        env.putAll(environment)
+    } else {
+        builder.environment = environment
+    }
     builder.start()
 }
 
 task createVirtualEnv() {
-    ext.pythonEnvDir = new File(buildDir, 'python-venv')
+    def pythonEnvDir = new File(buildDir, 'python-venv')
     outputs.dir pythonEnvDir
 
     doLast {
@@ -76,12 +82,12 @@ task createVirtualEnv() {
     }
 }
 
-task startServer(dependsOn: createVirtualEnv) {
+task startServer(dependsOn: createVirtualEnv) << {
 //if (Os.isFamily(Os.FAMILY_WINDOWS)) {
 //} else {
 //}
     ext.flaskExecutable = new File(buildDir, 'python-venv/bin/flask')
-    ext.environment = [FLASK_APP : "../pyserver/server/flask_server.py"]
+    ext.environment = [FLASK_APP: "../pyserver/server/flask_server.py"]
     ext.command = [flaskExecutable.path, 'run', '--port', '27222']
 
     def pidFile = getPidFile()
@@ -98,24 +104,22 @@ task startServer(dependsOn: createVirtualEnv) {
 
 }
 
-task stopServer() {
-    doLast {
-        println "---- Stopping python server ----"
-        def pidFile = getPidFile()
-        if(!pidFile.exists()) throw new GradleException("No server running!")
+task stopServer() << {
+    println "---- Stopping python server ----"
+    def pidFile = getPidFile()
+    if (!pidFile.exists()) throw new GradleException("No server running!")
 
-        def pid = pidFile.text
-        def process = "kill $pid".execute()
+    def pid = pidFile.text
+    def process = "kill $pid".execute()
 
-        try {
-            process.waitFor()
-        } finally {
-            pidFile.delete()
-        }
+    try {
+        process.waitFor()
+    } finally {
+        pidFile.delete()
     }
 }
 
-test.outputs.upToDateWhen {false}
+test.outputs.upToDateWhen { false }
 test.dependsOn startServer
 test.finalizedBy stopServer
 
