@@ -74,7 +74,7 @@ def handle_get_persons(trip_id):
     return flask.jsonify(persons)
 
 @app.route('/trips/<trip_id>/persons', methods=['POST'])
-def handle_post_person():
+def handle_post_person(trip_id):
     trip = get_trip(trip_id)
     id = trip.add_person(flask.request.json)
     return flask.jsonify({'id': id}), httplib.CREATED

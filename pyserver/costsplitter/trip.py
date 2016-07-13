@@ -29,6 +29,8 @@ class Trip:
         '''
         if not isinstance(person, dict):
             person = {'id':person}
+        if 'id' not in person:
+            person['id'] = self._generate_unique_person_id()
         
         id = person['id']
         entry = self.get_person(id)
@@ -38,6 +40,7 @@ class Trip:
                      'weight':1 }
             self._persons.append(entry)
         entry.update(person)
+        return id
         
     def remove_person(self, id):
         self._persons.remove(self.get_person(id))
@@ -91,4 +94,13 @@ class Trip:
      
     def get_payment_count(self):
         return len(self._payments)
+    
+    def _generate_unique_person_id(self):
+        i = 0
+        while True:
+            uid = 'person%s' % i
+            if not self.get_person(uid):
+                return uid
+            i = i+1
+
 
