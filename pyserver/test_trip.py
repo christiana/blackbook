@@ -11,10 +11,12 @@ class TestTrip:
         '''
         self.trip = costsplitter.trip.Trip()
         self.persons = ['CA', 'SAH', 'HEA']
-        self.payments = [{'creditor':'CA', 
+        self.payments = [{'id':'0', 
+                          'creditor':'CA', 
                           'amount':300, 
                           'description':'Test payment of 300E.'},
-                         {'creditor':'SAH', 
+                         {'id':'1', 
+                          'creditor':'SAH', 
                           'amount':600, 
                           'description':'Test payment of 600E.'}]
 
@@ -49,17 +51,18 @@ class TestTrip:
     def test_add_payments(self):
         self.init_data()        
         self.fill_trip()
-        assert len(self.payments) == self.trip.get_payment_count()
-        for i in range(len(self.payments)):
-            self._assert_payments_equal(self.payments[i], self.trip.get_payment(i))
+        assert len(self.payments) == len(self.trip.get_payments())
+        for index, id in enumerate(self.trip.get_payments()):
+            self._assert_payments_equal(self.payments[index], self.trip.get_payment(id))
                 
     def test_remove_payment(self):
         self.init_data()        
         self.fill_trip()
-        self.trip.remove_payment(0)
-        assert len(self.payments)-1 == self.trip.get_payment_count()
-        for i in range(len(self.payments)-1):
-            self._assert_payments_equal(self.payments[i+1], self.trip.get_payment(i))
+        self.trip.remove_payment(self.trip.get_payments()[0])
+        assert len(self.payments)-1 == len(self.trip.get_payments())
+        for index, id in enumerate(self.trip.get_payments()):
+#        for i in range(len(self.trip.payments)-1):
+            self._assert_payments_equal(self.payments[index+1], self.trip.get_payment(id))
             #assert self.payments[i+1] == self.trip.get_payment(i)
             
     def test_add_payment_check_balance(self):
@@ -81,8 +84,8 @@ class TestTrip:
     def test_add_payment_participant_subset(self):
         self.init_data()  
         self.fill_trip()
-        self.trip.add_payment({'id':0, 'participants':['CA','SAH']})
-        self.trip.add_payment({'id':1, 'participants':['CA','SAH']})
+        self.trip.add_payment({'id':'0', 'participants':['CA','SAH']})
+        self.trip.add_payment({'id':'1', 'participants':['CA','SAH']})
         numpy.testing.assert_almost_equal(self.trip.get_person('CA')['balance'], -150)
         numpy.testing.assert_almost_equal(self.trip.get_person('SAH')['balance'], 150)
         numpy.testing.assert_almost_equal(self.trip.get_person('HEA')['balance'],   0)
@@ -106,7 +109,7 @@ class TestTrip:
     def test_add_payment_foreign_currency_check_balance(self):
         self.init_data()        
         self.fill_trip()
-        self.trip.add_payment({'id':0, 'rate':2, 'currency':'USD'})
+        self.trip.add_payment({'id':'0', 'rate':2, 'currency':'USD'})
         #pprint.pprint(self.trip._payments)
         # first payment: 300USD -> 600EUR
         # second payment: 600EUR

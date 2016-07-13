@@ -28,6 +28,7 @@ class Trip:
         - update contents
         '''
         if not isinstance(person, dict):
+            assert isinstance(person, basestring)
             person = {'id':person}
         if 'id' not in person:
             person['id'] = self._generate_unique_person_id()
@@ -64,11 +65,21 @@ class Trip:
         return None
     
     def add_payment(self, payment):
-        entry = None
-        if payment.has_key('id'):
-            entry = self.get_payment(payment['id'])
+        if not isinstance(payment, dict):
+            assert isinstance(payment, basestring)
+            payment = {'id':payment}
+        if 'id' not in payment:
+            payment['id'] = self._generate_unique_payment_id()
+        
+        id = payment['id']
+        entry = self.get_payment(id)
+        
+        
+#        entry = None
+#        if payment.has_key('id'):
+#            entry = self.get_payment(payment['id'])
         if not entry:
-            payment.pop('id', '') # ignore the input suggested id.
+            #payment.pop('id', '') # ignore the input suggested id.
             entry = {'id':len(self._payments),
                        'creditor':"",
                        'type':'split',
@@ -80,20 +91,28 @@ class Trip:
             self._payments.append(entry)
         entry.update(payment)
         
-    def remove_payment(self, index):
-        if self.is_valid_payment_index(index): 
-            del self._payments[index]
+    def remove_payment(self, id):
+        self._payments.remove(self.get_payment(id))
+#        if self.is_valid_payment_index(index): 
+#            del self._payments[index]
 
-    def get_payment(self, index):
-        if self.is_valid_payment_index(index):
-            return self._payments[index]
+    def get_payment(self, id):
+        for current in self._payments:
+            if current['id'] == id:
+                return current
         return None
+#        if self.is_valid_payment_index(index):
+#            return self._payments[index]
+#        return None
 
-    def is_valid_payment_index(self, index):    
-        return index>=0 and index<len(self._payments)
+    def get_payments(self):
+        return [entry['id'] for entry in self._payments]
+
+#    def is_valid_payment_index(self, index):    
+#        return index>=0 and index<len(self._payments)
      
-    def get_payment_count(self):
-        return len(self._payments)
+#    def get_payment_count(self):
+#        return len(self._payments)
     
     def _generate_unique_person_id(self):
         i = 0
@@ -103,4 +122,11 @@ class Trip:
                 return uid
             i = i+1
 
+    def _generate_unique_payment_id(self):
+        i = 0
+        while True:
+            uid = 'payment%s' % i
+            if not self.get_payment(uid):
+                return uid
+            i = i+1
 

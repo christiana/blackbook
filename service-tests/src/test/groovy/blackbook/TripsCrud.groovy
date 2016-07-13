@@ -71,9 +71,9 @@ class TripsCrud extends Specification {
         when:
           def response = client.post path: '/trips', contentType: 'application/json',
                   body: [
-                          name       : "Første tur",
+                          name       : "Forste tur",
                           date       : "2016-07-12",
-                          description: "En fin tur til ålborg"
+                          description: "En fin tur til Aalborg"
                   ]
           sharedId = response.data.id
 
@@ -92,9 +92,9 @@ class TripsCrud extends Specification {
         then:
           response.status == 200
           response.data.id == id
-          response.data.name == "Første tur"
+          response.data.name == "Forste tur"
           response.data.date == "2016-07-12"
-          response.data.description == "En fin tur til ålborg"
+          response.data.description == "En fin tur til Aalborg"
 
         where:
           id << [sharedId]
@@ -116,9 +116,9 @@ class TripsCrud extends Specification {
         when:
           client.put path: "/trips/doesnotexist", contentType: 'application/json',
                   body: [
-                          name       : "Første tur",
+                          name       : "Forste tur",
                           date       : "2016-07-12",
-                          description: "En fin tur til ålborg"
+                          description: "En fin tur til Aalborg"
                   ]
 
         then:
@@ -131,9 +131,9 @@ class TripsCrud extends Specification {
         when:
           def response = client.put path: "/trips/$id", contentType: 'application/json',
                   body: [
-                          name       : "Første tur",
+                          name       : "Forste tur",
                           date       : "2016-07-12",
-                          description: "En kjip tur til ålborg"
+                          description: "En kjip tur til Aalborg"
                   ]
 
         then:
@@ -187,7 +187,7 @@ class TripsCrud extends Specification {
           response.data.id == id
           response.data.name == "Tur nr. 1"
           response.data.date == "2016-07-12"
-          response.data.description == "En kjip tur til ålborg"
+          response.data.description == "En kjip tur til Aalborg"
           response.data.somebadassdata == "I'm so sexy it hurts"
 
         where:
