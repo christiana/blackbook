@@ -2,13 +2,11 @@ package blackbook
 
 import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
-import net.sf.json.JSON
 import spock.lang.Specification
 import spock.lang.Stepwise
 
-
 @Stepwise
-class BlackbookAPI extends Specification {
+class TripsCrud extends Specification {
 
     def client = new RESTClient('http://localhost:27222')
     def id
@@ -58,7 +56,7 @@ class BlackbookAPI extends Specification {
           ex.response.contentType == 'application/json'
     }
 
-    def "POST /trips returns 201 CREATED and contains created object id"() {
+    def "POST /trips returns 201 CREATED and response contains created object id"() {
         when:
           def response = client.post path: '/trips', body: [
                   name: "Første tur",
@@ -84,5 +82,12 @@ class BlackbookAPI extends Specification {
           response.data.date == "2016-07-12"
           response.data.description == "En fin tur til ålborg"
     }
+
+    def "PUT /trips/[id] returns 404 NOT FOUND when the trip does not exist"() {
+        when:
+
+    }
+
+    def "PUT /trips/[id] returns 202 ACCEPTED when the trip exists"() {}
 
 }
