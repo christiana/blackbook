@@ -36,6 +36,7 @@ def handle_index():
     reply = "<html>" + head + help_text.getHelpPageBody() +"</html>"
     return reply
 
+################## TRIPS BEGIN ##############################################
 @app.route('/trips', methods=['GET'])
 def handle_get_trips():
     trips = app.trips.get_trips()
@@ -46,11 +47,15 @@ def handle_post_trip():
     id = app.trips.add_trip(flask.request.json)
     return flask.jsonify({'id': id}), httplib.CREATED
 
-@app.route('/trips/<string:trip_id>', methods=['PUT', 'GET', 'DELETE'])
-def handle_trip(trip_id):
+def get_trip(trip_id):
     trip = app.trips.get_trip(trip_id)
     if not trip:
         flask.abort(httplib.NOT_FOUND)
+    return trip
+
+@app.route('/trips/<string:trip_id>', methods=['PUT', 'GET', 'DELETE'])
+def handle_trip(trip_id):
+    trip = get_trip(trip_id)
     if flask.request.method=='PUT':
         trip.set_info(flask.request.json)
         return flask.jsonify({'id': trip_id}), httplib.ACCEPTED
@@ -59,6 +64,38 @@ def handle_trip(trip_id):
     if flask.request.method=='DELETE':
         app.trips.remove_trip(trip_id)
         return flask.jsonify({'id': trip_id}), httplib.ACCEPTED
+################## TRIPS END ##############################################
+
+################## PERSONS BEGIN ##############################################
+@app.route('/trips/<trip_id>/persons', methods=['GET'])
+def handle_get_persons(trip_id):
+    trip = get_trip(trip_id)
+    persons = trip.get_persons()
+    return flask.jsonify(persons)
+
+@app.route('/trips/<trip_id>/persons', methods=['POST'])
+def handle_post_person():
+    trip = get_trip(trip_id)
+    id = trip.add_person(flask.request.json)
+    return flask.jsonify({'id': id}), httplib.CREATED
+
+@app.route('/trips/<trip_id>/persons/<person_id>', methods=['PUT', 'GET', 'DELETE'])
+def handle_person(trip_id, person_id):
+    trip = get_trip(trip_id)
+    person = trip.get_person(person_id)
+    if not person:
+        flask.abort(httplib.NOT_FOUND)
+    if flask.request.method=='PUT':
+        person = flask.request.json
+        person['id'] = person_id
+        trip.add_person(person)
+        return flask.jsonify({'id': person_id}), httplib.ACCEPTED
+    if flask.request.method=='GET':
+        return flask.jsonify(person)
+    if flask.request.method=='DELETE':
+        trip.remove_person(person_id)
+        return flask.jsonify({'id': person_id}), httplib.ACCEPTED
+################## PERSONS END ##############################################
 
 if __name__ == '__main__':
     app.run(debug=True)
