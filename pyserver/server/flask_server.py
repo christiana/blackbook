@@ -107,7 +107,7 @@ def handle_get_payments(trip_id):
 @app.route('/trips/<trip_id>/payments', methods=['POST'])
 def handle_post_payment(trip_id):
     trip = get_trip(trip_id)
-    id = trip.add_payments(flask.request.json)
+    id = trip.add_payment(flask.request.json)
     return flask.jsonify({'id': id}), httplib.CREATED
 
 @app.route('/trips/<trip_id>/payments/<payment_id>', methods=['PUT', 'GET', 'DELETE'])

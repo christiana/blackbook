@@ -90,6 +90,7 @@ class Trip:
                        'date':datetime.date.today().isoformat() }
             self._payments.append(entry)
         entry.update(payment)
+        return id
         
     def remove_payment(self, id):
         self._payments.remove(self.get_payment(id))
