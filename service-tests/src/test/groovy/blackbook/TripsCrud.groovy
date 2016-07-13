@@ -83,11 +83,11 @@ class TripsCrud extends Specification {
           response.data.description == "En fin tur til ålborg"
     }
 
-    def "PUT /trips/[id] returns 404 NOT FOUND when the trip does not exist"() {
-        when:
-
-    }
-
-    def "PUT /trips/[id] returns 202 ACCEPTED when the trip exists"() {}
+//    def "PUT /trips/[id] returns 404 NOT FOUND when the trip does not exist"() {
+//        when:
+//
+//    }
+//
+//    def "PUT /trips/[id] returns 202 ACCEPTED when the trip exists"() {}
 
 }
