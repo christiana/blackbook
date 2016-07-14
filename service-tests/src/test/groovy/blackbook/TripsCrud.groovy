@@ -12,6 +12,10 @@ class TripsCrud extends Specification {
     def client = new RESTClient('http://localhost:27222')
     def static sharedId
 
+    def setup() {
+        client.contentType = 'application/json'
+    }
+
     def "GET /trips returns status 200"() {
         when:
           def response = client.get path: '/trips'
@@ -69,11 +73,11 @@ class TripsCrud extends Specification {
 
     def "POST /trips returns 201 CREATED and response contains created object id"() {
         when:
-          def response = client.post path: '/trips', contentType: 'application/json',
+          def response = client.post path: '/trips',
                   body: [
-                          name       : "Forste tur",
+                          name       : "Første tur",
                           date       : "2016-07-12",
-                          description: "En fin tur til Aalborg"
+                          description: "En fin tur til Ålborg"
                   ]
           sharedId = response.data.id
 
@@ -92,9 +96,9 @@ class TripsCrud extends Specification {
         then:
           response.status == 200
           response.data.id == id
-          response.data.name == "Forste tur"
+          response.data.name == "Første tur"
           response.data.date == "2016-07-12"
-          response.data.description == "En fin tur til Aalborg"
+          response.data.description == "En fin tur til Ålborg"
 
         where:
           id << [sharedId]
@@ -114,11 +118,11 @@ class TripsCrud extends Specification {
 
     def "PUT /trips/[id] returns 404 NOT FOUND when the trip does not exist"() {
         when:
-          client.put path: "/trips/doesnotexist", contentType: 'application/json',
+          client.put path: "/trips/doesnotexist",
                   body: [
-                          name       : "Forste tur",
+                          name       : "Første tur",
                           date       : "2016-07-12",
-                          description: "En fin tur til Aalborg"
+                          description: "En fin tur til Ålborg"
                   ]
 
         then:
@@ -129,11 +133,11 @@ class TripsCrud extends Specification {
     @Unroll
     def "PUT /trips/#id returns 202 ACCEPTED when the trip exists"() {
         when:
-          def response = client.put path: "/trips/$id", contentType: 'application/json',
+          def response = client.put path: "/trips/$id",
                   body: [
-                          name       : "Forste tur",
+                          name       : "Første tur",
                           date       : "2016-07-12",
-                          description: "En kjip tur til Aalborg"
+                          description: "En kjip tur til Ålborg"
                   ]
 
         then:
@@ -147,7 +151,7 @@ class TripsCrud extends Specification {
     @Unroll
     def "PUT /trips/#id returns 202 ACCEPTED when trip is partially updated"() {
         when:
-          def response = client.put path: "/trips/$id", contentType: 'application/json',
+          def response = client.put path: "/trips/$id",
                   body: [
                           name: "Tur nr. 1"
                   ]
@@ -163,7 +167,7 @@ class TripsCrud extends Specification {
     @Unroll
     def "PUT /trips/#id returns 202 ACCEPTED when an unkown field is sent"() {
         when:
-          def response = client.put path: "/trips/$id", contentType: 'application/json',
+          def response = client.put path: "/trips/$id",
                   body: [
                           somebadassdata: "I'm so sexy it hurts"
                   ]
@@ -187,7 +191,7 @@ class TripsCrud extends Specification {
           response.data.id == id
           response.data.name == "Tur nr. 1"
           response.data.date == "2016-07-12"
-          response.data.description == "En kjip tur til Aalborg"
+          response.data.description == "En kjip tur til Ålborg"
           response.data.somebadassdata == "I'm so sexy it hurts"
 
         where:
