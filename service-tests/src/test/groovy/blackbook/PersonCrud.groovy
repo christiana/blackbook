@@ -100,6 +100,7 @@ class PersonCrud extends Specification {
           response.data.id == personId
           response.data.name == "Reidar Reisgutt"
           response.data.weight == 0.9
+          response.data.balance == 0.0
 
         where:
           tripId       | personId
@@ -141,113 +142,52 @@ class PersonCrud extends Specification {
           sharedTripId | 'does_not_exist'
 
     }
-//
-//    @Unroll
-//    def "PUT /trips/#id returns 202 ACCEPTED when the trip exists"() {
-//        when:
-//          def response = client.put path: "/trips/$id",
-//                  body: [
-//                          name       : "Første tur",
-//                          date       : "2016-07-12",
-//                          description: "En kjip tur til Ålborg"
-//                  ]
-//
-//        then:
-//          response.status == 202
-//
-//        where:
-//          id << [sharedTripId]
-//
-//    }
-//
-//    @Unroll
-//    def "PUT /trips/#id returns 202 ACCEPTED when trip is partially updated"() {
-//        when:
-//          def response = client.put path: "/trips/$id",
-//                  body: [
-//                          name: "Tur nr. 1"
-//                  ]
-//
-//        then:
-//          response.status == 202
-//
-//        where:
-//          id << [sharedTripId]
-//
-//    }
-//
-//    @Unroll
-//    def "PUT /trips/#id returns 202 ACCEPTED when an unkown field is sent"() {
-//        when:
-//          def response = client.put path: "/trips/$id",
-//                  body: [
-//                          somebadassdata: "I'm so sexy it hurts"
-//                  ]
-//
-//        then:
-//          response.status == 202
-//
-//        where:
-//          id << [sharedTripId]
-//
-//    }
-//
-//
-//    @Unroll
-//    def "GET /trips/#id returns updated trip object"() {
-//        when:
-//          def response = client.get path: "/trips/$id"
-//
-//        then:
-//          response.status == 200
-//          response.data.id == id
-//          response.data.name == "Tur nr. 1"
-//          response.data.date == "2016-07-12"
-//          response.data.description == "En kjip tur til Ålborg"
-//          response.data.somebadassdata == "I'm so sexy it hurts"
-//
-//        where:
-//          id << [sharedTripId]
-//
-//    }
-//
-//    @Unroll
-//    def "DELETE /trips/#id returns 404 NOT FOUND when trip does not exist"() {
-//        when:
-//          client.delete path: "/trips/noexisting"
-//
-//        then:
-//          def ex = thrown(HttpResponseException)
-//          ex.response.status == 404
-//
-//        where:
-//          id << [sharedTripId]
-//
-//    }
-//
-//    @Unroll
-//    def "DELETE /trips/#id returns 202 ACCEPTED when trip exists"() {
-//        when:
-//          def response = client.delete path: "/trips/$id"
-//
-//        then:
-//          response.status == 202
-//
-//        where:
-//          id << [sharedTripId]
-//    }
-//
-//    @Unroll
-//    def "GET /trips/#id returns 404 when trip has been deleted"() {
-//        when:
-//          client.get path: "/trips/$id"
-//
-//        then:
-//          def ex = thrown(HttpResponseException)
-//          ex.response.status == 404
-//
-//        where:
-//          id << [sharedTripId]
-//    }
+
+    @Unroll
+    def "PUT /trips/#tripId/persons/#personId returns 202 ACCEPTED when the trip exists"() {
+        when:
+          def response = client.put path: "/trips/$tripId/persons/$personId",
+                  body: [
+                          name       : "Første tur",
+                          date       : "2016-07-12",
+                          description: "En kjip tur til Ålborg"
+                  ]
+
+        then:
+          response.status == 202
+
+        where:
+          tripId       | personId
+          sharedTripId | sharedPersonId
+
+    }
+
+    @Unroll
+    def "DELETE /trips/#tripId/persons/#personId returns 404 NOT FOUND when trip does not exist"() {
+        when:
+          client.delete path: "/trips/#tripId/persons/#personId"
+
+        then:
+          def ex = thrown(HttpResponseException)
+          ex.response.status == 404
+
+        where:
+          tripId       | personId
+          sharedTripId | 'does_not_exist'
+
+    }
+
+    @Unroll
+    def "DELETE /trips/#tripId/persons/#personId returns 202 ACCEPTED when trip exists"() {
+        when:
+          def response = client.delete path: "/trips/$tripId/persons/$personId"
+
+        then:
+          response.status == 202
+
+        where:
+          tripId       | personId
+          sharedTripId | sharedPersonId
+    }
 
 }
