@@ -7,17 +7,17 @@ import spock.lang.Stepwise
 import spock.lang.Unroll
 
 @Stepwise
-class PersonCrud extends Specification {
+class PaymentCrud extends Specification {
 
     def static client = new RESTClient('http://localhost:27222')
     def static sharedTripId
-    def static sharedPersonId
+    def static sharedPaymentId
 
     def setupSpec() {
         client.setContentType('application/json')
         def response = client.post path: '/trips',
                 body: [
-                        name       : "Auto: PersonCrud test trip",
+                        name       : "Auto: PaymentCrud test trip",
                         date       : "2016-07-12",
                         description: "Uses for service test"
                 ]
@@ -29,9 +29,9 @@ class PersonCrud extends Specification {
     }
 
     @Unroll
-    def "GET /trips/#tripId/persons returns status 200"() {
+    def "GET /trips/#tripId/payments returns status 200"() {
         when:
-          def response = client.get path: "/trips/$tripId/persons"
+          def response = client.get path: "/trips/$tripId/payments"
 
         then:
           response.status == 200
@@ -41,9 +41,9 @@ class PersonCrud extends Specification {
     }
 
     @Unroll
-    def "GET /trips/#tripId/persons returns an empty list when no persons has been added"() {
+    def "GET /trips/#tripId/payments returns an empty list when no payments has been added"() {
         when:
-          def response = client.get path: "/trips/$tripId/persons"
+          def response = client.get path: "/trips/$tripId/payments"
 
         then:
           response.data instanceof List
@@ -55,9 +55,9 @@ class PersonCrud extends Specification {
     }
 
     @Unroll
-    def "GET /trips/#tripId/persons/#personId returns 404 NOT FOUND when trip does not exist "() {
+    def "GET /trips/#tripId/payments/#personId returns 404 NOT FOUND when trip does not exist "() {
         when:
-          client.get path: "/trips/$tripId/persons/$personId"
+          client.get path: "/trips/$tripId/payments/$personId"
 
         then:
           def ex = thrown(HttpResponseException)
@@ -71,18 +71,23 @@ class PersonCrud extends Specification {
 
 
     @Unroll
-    def "POST /trips/#tripId/persons returns 201 CREATED and response contains created object id"() {
+    def "POST /trips/#tripId/payments returns 201 CREATED and response contains created object id"() {
         when:
-          def response = client.post path: "/trips/$tripId/persons",
+          def response = client.post path: "/trips/$tripId/payments",
                   body: [
-                          name  : "Reidar Reisgutt",
-                          weight: 0.9
+                          type        : 'split',
+                          amount      : 10,
+                          currency    : 'NOK',
+                          rate        : 1,
+                          description : 'Ham',
+                          date        : "2016-07-12",
+                          participants: [],
                   ]
 
-          sharedPersonId = response.data.id
+          sharedPaymentId = response.data.id
 
         then:
-          sharedPersonId
+          sharedPaymentId
           response.status == 201
 
         where:
@@ -90,43 +95,47 @@ class PersonCrud extends Specification {
     }
 
     @Unroll
-    def "GET /trips/#tripId/persons/#personId returns person object"() {
+    def "GET /trips/#tripId/payments/#personId returns person object"() {
         when:
 
-          def response = client.get path: "/trips/$tripId/persons/$personId"
+          def response = client.get path: "/trips/$tripId/payments/$personId"
 
         then:
           response.status == 200
-          response.data.id == personId
-          response.data.name == "Reidar Reisgutt"
-          response.data.weight == 0.9
-          response.data.balance == 0.0
+          response.data.type == 'split'
+          response.data.amount == 10
+          response.data.currency == 'NOK'
+          response.data.rate == 1
+          response.data.description == 'Ham'
+          response.data.date == '2016-07-12'
+          response.data.participants == []
+
 
         where:
           tripId       | personId
-          sharedTripId | sharedPersonId
+          sharedTripId | sharedPaymentId
 
     }
 
     @Unroll
-    def "GET /trips/#tripId/persons returns a list with one person when one person has been added"() {
+    def "GET /trips/#tripId/payments returns a list with one person when one person has been added"() {
         when:
-          def response = client.get path: "/trips/$tripId/persons"
+          def response = client.get path: "/trips/$tripId/payments"
 
         then:
           response.data.size() == 1
-          response.data.first() == sharedPersonId
+          response.data.first() == sharedPaymentId
 
         where:
           tripId       | personId
-          sharedTripId | sharedPersonId
+          sharedTripId | sharedPaymentId
 
     }
 
     @Unroll
-    def "PUT /trips/#tripId/persons/#personId returns 404 NOT FOUND when the person does not exist"() {
+    def "PUT /trips/#tripId/payments/#personId returns 404 NOT FOUND when the person does not exist"() {
         when:
-          client.put path: "/trips/$tripId/persons/$personId",
+          client.put path: "/trips/$tripId/payments/$personId",
                   body: [
                           name  : "Reidar Reisgutt",
                           weight: 0.9
@@ -144,9 +153,9 @@ class PersonCrud extends Specification {
     }
 
     @Unroll
-    def "PUT /trips/#tripId/persons/#personId returns 202 ACCEPTED when the trip exists"() {
+    def "PUT /trips/#tripId/payments/#personId returns 202 ACCEPTED when the trip exists"() {
         when:
-          def response = client.put path: "/trips/$tripId/persons/$personId",
+          def response = client.put path: "/trips/$tripId/payments/$personId",
                   body: [
                           name       : "Første tur",
                           date       : "2016-07-12",
@@ -158,14 +167,14 @@ class PersonCrud extends Specification {
 
         where:
           tripId       | personId
-          sharedTripId | sharedPersonId
+          sharedTripId | sharedPaymentId
 
     }
 
     @Unroll
-    def "DELETE /trips/#tripId/persons/#personId returns 404 NOT FOUND when trip does not exist"() {
+    def "DELETE /trips/#tripId/payments/#personId returns 404 NOT FOUND when trip does not exist"() {
         when:
-          client.delete path: "/trips/#tripId/persons/#personId"
+          client.delete path: "/trips/#tripId/payments/#personId"
 
         then:
           def ex = thrown(HttpResponseException)
@@ -178,16 +187,16 @@ class PersonCrud extends Specification {
     }
 
     @Unroll
-    def "DELETE /trips/#tripId/persons/#personId returns 202 ACCEPTED when trip exists"() {
+    def "DELETE /trips/#tripId/payments/#personId returns 202 ACCEPTED when trip exists"() {
         when:
-          def response = client.delete path: "/trips/$tripId/persons/$personId"
+          def response = client.delete path: "/trips/$tripId/payments/$personId"
 
         then:
           response.status == 202
 
         where:
           tripId       | personId
-          sharedTripId | sharedPersonId
+          sharedTripId | sharedPaymentId
     }
 
 }
