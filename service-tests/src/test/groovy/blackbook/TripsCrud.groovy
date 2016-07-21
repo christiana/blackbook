@@ -164,22 +164,6 @@ class TripsCrud extends Specification {
 
     }
 
-    @Unroll
-    def "PUT /trips/#id returns 202 ACCEPTED when an unkown field is sent"() {
-        when:
-          def response = client.put path: "/trips/$id",
-                  body: [
-                          somebadassdata: "I'm so sexy it hurts"
-                  ]
-
-        then:
-          response.status == 202
-
-        where:
-          id << [sharedId]
-
-    }
-
 
     @Unroll
     def "GET /trips/#id returns updated trip object"() {
@@ -192,7 +176,6 @@ class TripsCrud extends Specification {
           response.data.name == "Tur nr. 1"
           response.data.date == "2016-07-12"
           response.data.description == "En kjip tur til Ålborg"
-          response.data.somebadassdata == "I'm so sexy it hurts"
 
         where:
           id << [sharedId]
