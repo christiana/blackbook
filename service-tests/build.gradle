@@ -82,12 +82,13 @@ task createVirtualEnv() {
     }
 }
 
+
 task startServer(dependsOn: createVirtualEnv) << {
 //if (Os.isFamily(Os.FAMILY_WINDOWS)) {
 //} else {
 //}
     ext.flaskExecutable = new File(buildDir, 'python-venv/bin/flask')
-    ext.environment = [FLASK_APP: "../pyserver/server/flask_server.py"]
+    ext.environment = [FLASK_APP: "../pyserver/server/flaskplus_server.py"]
     ext.command = [flaskExecutable.path, 'run', '--port', '27222']
 
     def pidFile = getPidFile()

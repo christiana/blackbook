@@ -1,0 +1,357 @@
+# Example YAML to get you started quickly.
+# Be aware that YAML has indentation based scoping.
+# Code completion support is available so start typing for available options.
+swagger: '2.0'
+
+# This is your document metadata
+info:
+  version: "0.0.1"
+  title: Svarteboka
+  description: |
+    A tool for keeping track of expenses on group trips. 
+    See https://github.com/christiana/blackbook
+
+paths:
+  #########################################
+  /trips:
+    get:
+      description: |
+        Get a list of the available `Trip` objects.
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnIdList"
+      tags:
+        - Trip
+    post:
+      description: |
+        Add a new `Trip`. If no id is given, the server will create one.
+      parameters:
+        - $ref: "#/parameters/trip"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+      tags:
+        - Trip
+
+  #########################################
+  /trips/{trip_id}:
+    get:
+      description: Get a `Trip` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+      responses:
+        200:
+          description: Successful response. 
+          schema:
+            $ref: "#/definitions/Trip"
+        404: 
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Trip
+    put:
+      description: Update a `Trip` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/trip"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+        404:
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Trip
+    delete:
+      description: Delete a `Trip` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+        404:
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Trip
+        
+  #########################################
+  /trips/{trip_id}/persons:
+    get:
+      description: |
+        Get a list of the available `Person` objects.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnIdList"
+      tags:
+        - Person
+    post:
+      description: |
+        Add a new `Person`. If no id is given, the server will create one.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/person"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+      tags:
+        - Person
+
+  #########################################
+  /trips/{trip_id}/persons/{person_id}:
+    get:
+      description: Get a `Person` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/person_id"
+      responses:
+        200:
+          description: Successful response. 
+          schema:
+            $ref: "#/definitions/Person"
+        404: 
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Person
+    put:
+      description: Update a `Person` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/person_id"
+        - $ref: "#/parameters/person"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+        404:
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Person
+    delete:
+      description: Delete a `Person` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/person_id"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+        404:
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Person
+
+  #########################################
+  /trips/{trip_id}/payments:
+    get:
+      description: |
+        Get a list of the available `Payment` objects.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnIdList"
+      tags:
+        - Payment
+    post:
+      description: |
+        Add a new `Payment`. If no id is given, the server will create one.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/payment"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+      tags:
+        - Payment
+
+  #########################################
+  /trips/{trip_id}/payments/{payment_id}:
+    get:
+      description: Get a `Payment` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/payment_id"
+      responses:
+        200:
+          description: Successful response. 
+          schema:
+            $ref: "#/definitions/Payment"
+        404: 
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Payment
+    put:
+      description: Update a `Person` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/payment_id"
+        - $ref: "#/parameters/payment"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+        404:
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Payment
+    delete:
+      description: Delete a `Person` object.
+      parameters:
+        - $ref: "#/parameters/trip_id"
+        - $ref: "#/parameters/payment_id"
+      responses:
+        200:
+          $ref: "#/responses/SuccessfulResponseReturnId"
+        404:
+          $ref: "#/responses/Standard404ErrorResponse"
+      tags:
+        - Payment
+
+#########################################
+definitions:
+  Trip:
+    description: One trip.
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string 
+      date: 
+        type: string
+        format: date  
+  Person:
+    description: |
+      One person in the context of a trip. Name, weight (how much of the total should be paid by the person), balance (how much should the person pay or get back)
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      weight:
+        type: number
+        format: float
+      balance: 
+        type: number
+        format: float
+        readOnly: true
+  Payment:
+    description: |
+      One payment made by one person (creditor) on behalf of a subset of the others (participants). If a rate is given, this is the conversion from the given currency to the default currency. 
+      type gives the type of payment.
+      type=split: Amount should be split among all participants according to weight.
+      type=debt: participants owes the creditor the given amount. 
+    type: object
+    properties:
+      id:
+        type: string
+        default: generated by server
+      type:
+        type: string
+      creditor:
+        type: string
+        default: ""
+      description:
+        type: string 
+        default: ""
+      amount:
+        type: number
+        format: float
+        default: 0
+      participants:
+        type: array
+        items:
+          type: string
+      currency:
+        type: string
+      rate: 
+        type: number
+        format: float
+        default: 1
+      date: 
+        type: string
+        format: date  
+  Id:
+    type: object
+    properties:
+      id:
+        type: string
+  IdList:
+    type: array
+    items:
+      type: string
+  Error:
+    type: object
+    properties:
+      error:
+        type: string
+
+#########################################
+parameters:
+  trip_id:
+    name: trip_id
+    in: path
+    required: true
+    description: Id of trip
+    type: string
+
+  person_id:
+    name: person_id
+    in: path
+    required: true
+    description: Id of person
+    type: string
+
+  payment_id:
+    name: payment_id
+    in: path
+    required: true
+    description: Id of payment
+    type: string
+
+  trip:
+    name: trip
+    in: body
+    description: 
+      Trip definition. All properties are optional, 
+      those missing will be auto-generated.
+    required: true
+    schema:
+      $ref: "#/definitions/Trip"
+
+  person:
+    name: person
+    in: body
+    description: 
+      Person definition. All properties are optional, 
+      those missing will be auto-generated.
+    required: true
+    schema:
+      $ref: "#/definitions/Person"
+
+  payment:
+    name: payment
+    in: body
+    description: 
+      Payment definition. All properties are optional, 
+      those missing will be auto-generated.
+    required: true
+    schema:
+      $ref: "#/definitions/Payment"
+
+#########################################
+responses:
+  Standard404ErrorResponse:
+    description: Not found.
+    schema:
+      $ref: "#/definitions/Error"
+  SuccessfulResponseReturnId:
+    description: Successful response. 
+    schema:
+      $ref: "#/definitions/Id"
+  SuccessfulResponseReturnIdList:
+    description: Successful response. 
+    schema:
+      $ref: "#/definitions/IdList"
+      
+    

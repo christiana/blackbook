@@ -6,8 +6,11 @@ import pyserver.costsplitter.trip_manager
 #from flask import Flask, jsonify
 import flask
 import httplib
+#from flasgger import Swagger
+#from flasgger.utils import swag_from
 
 app = flask.Flask(__name__)
+#Swagger(app)
 #app.object = "Hello, World!"
 #app.counter = 0
 app.trips = pyserver.costsplitter.trip_manager.TripManager()
@@ -31,6 +34,7 @@ def handle_METHOD_NOT_ALLOWED(error):
 ###############################################################################
 
 @app.route('/')
+#@swag_from('swagger_spec.yml')
 def handle_index():
     head = "<head><title>Svarteboka</title></head>"
     reply = "<html>" + head + help_text.getHelpPageBody() +"</html>"
