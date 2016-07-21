@@ -13,9 +13,8 @@ api = Api(app, version='0.1', title='Svarteboka API',
     description='''\
 A tool for keeping track of expenses on group trips. 
 See https://github.com/christiana/blackbook
-    '''
-    ,
-    
+    ''',
+    validate=True
 )
 
 ns = api.namespace('', description='TRIP operations')
@@ -51,7 +50,7 @@ payment_model = api.model('Payment', {
     'description': fields.String(),
     'amount': fields.Float(description='The amount of money paid, should be split among participants and paid back to creditor.',
                            default=1),
-    'participants': fields.Float(description='`Persons` part of the payment. They owe the creditor a sum according to the given type and amount.'),
+    'participants': fields.List(fields.String(), description='`Persons` part of the payment. They owe the creditor a sum according to the given type and amount.'),
     'currency': fields.String(description='The name of the currency used. (EUR, NOK, ...)'),
     'rate': fields.Float(description='The conversion rate from the given amount to the default currency.', 
                          default=1),
