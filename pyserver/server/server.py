@@ -85,7 +85,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print ""
         trips = self.server.trips.get_trips() 
         
-        trip_id = indata['id'] 
+        trip_id = indata.get('id', None) 
         if trip_id in trips:
             return self.handle_failure("trip id %s already exists"%trip_id)
         

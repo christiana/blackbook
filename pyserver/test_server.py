@@ -88,7 +88,7 @@ class TestServer:
 
     @server_call
     def test_server_post_trip(self):
-        trip_info = {'id':'trip1'}
+        trip_info = {'description':'beskrivelse'}
         r = requests.post(self.url() + '/trips', data=json.dumps(trip_info))
         print "got response from server:"
         print r.json()
@@ -96,7 +96,7 @@ class TestServer:
         print "got response from server:"
         print r.json()
         assert len(r.json())==1
-        assert 'trip1' in r.json()
+        assert 0 in r.json()
 
     @server_call
     def t_est_server_get_nonexistent_trip(self):

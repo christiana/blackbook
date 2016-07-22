@@ -1,23 +1,37 @@
 import datetime
 import balance_calculator
+import trip_database
     
 class Trip:
     '''
     '''
-    def __init__(self, id=''):
+    def __init__(self, id=None):
+        self.id = id
+        self.table_handler = trip_database.TableHandler(table=trip_database.trips_table, 
+                                                        default_content=Trip.create_default_info)
         self._persons = []
         self._payments = []
-        self.info = {}
-        self.info['id'] = id
-        self.info['name'] = id
-        self.info['description'] = ''
-        self.info['date'] = datetime.date.today().isoformat()
+        #self.info = {}
+        #self.info['description'] = ''
+        #self.info['date'] = datetime.date.today().isoformat()
+        #self.info['name'] = 'Trip_%s' % self.info['date'] 
+        #self.info.update(info)
     
+    @staticmethod
+    def create_default_info():
+        retval = {}
+        retval['description'] = ''
+        retval['date'] = datetime.date.today().isoformat()
+        retval['name'] = 'Trip_%s' % retval['date'] 
+        return retval
+
     def get_info(self):
-        return self.info
+        return self.table_handler.get(self.id)
+        #return self.info
     
     def set_info(self, info):
-        self.info.update(info)
+        self.table_handler.update(self.id)
+        #self.info.update(info)
     
     def add_person(self, person):
         '''

@@ -37,7 +37,7 @@ id_model = api.model('Id', {
 #id_list_model = api.model('IdList', [])
 
 trip_model = api.model('Trip', {
-    'id': fields.String(readOnly=False, description='Unique identifier, auto-generated if not input during creation'),
+    'id': fields.Integer(readOnly=True, description='Unique identifier'),
     'name': fields.String(),
     'description': fields.String(),
     'date': fields.Date()

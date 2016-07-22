@@ -1,7 +1,47 @@
 import costsplitter.trip
+import costsplitter.trip_manager
 import numpy.testing
 import pprint
     
+class TestTripManager:
+    '''
+    '''
+    def test_add_one_trip(self):
+        print "***************** test_add_one_trip begin"
+        trips = costsplitter.trip_manager.TripManager()
+        id = trips.add_trip({})
+        assert int(id) is not None
+        self.clear_trips()
+        print "***************** test_add_one_trip end"
+
+    def test_add_two_trips_get_both(self):
+        print "***************** test_add_two_trips_get_both begin"
+        trips = costsplitter.trip_manager.TripManager()
+        trip_input = [{'name':'n1',
+                       'description':'desc2',
+                       'date':'2016-05-07'},
+                      {'name':'n2',
+                       'description':'desc2',
+                       'date':'2016-05-08'}
+                      ]
+        ids = []
+        for input in trip_input:
+            ids.append(trips.add_trip(input))
+        assert ids == trips.get_trips()
+        for input, id in zip(trip_input, ids):
+            output = trips.get_trip(id)
+            for key in input.keys():
+                assert input[key] == output.get_info()[key]
+        self.clear_trips()
+        print "***************** test_add_two_trips_get_both end"
+    
+    def clear_trips(self):
+        trips = costsplitter.trip_manager.TripManager()
+        ids = trips.get_trips()
+        for id in ids:
+            trips.remove_trip(id)
+        assert len(trips.get_trips())==0
+
 class TestTrip:
     '''
     '''
