@@ -6,6 +6,7 @@ import pyserver.costsplitter.trip_manager
 import flask
 import httplib
 from flask.ext.restplus import Api, Resource, fields
+import flask.ext.restplus 
 
 app = flask.Flask(__name__)
 
@@ -18,6 +19,17 @@ See https://github.com/christiana/blackbook
 )
 
 ns = api.namespace('', description='TRIP operations')
+
+
+class DebuggedDate(fields.Date):
+    def __init__(self, **kwargs):
+        super(DebuggedDate, self).__init__(**kwargs)
+        print "**DebuggedDate** ", "created"
+        pass
+    def format(self, value):
+        print "**DebuggedDate** ", "format"
+        return super(DebuggedDate, self).format(value)
+        pass
 
 id_model = api.model('Id', {
     'id': fields.String(readOnly=True, description='Unique identifier')
@@ -121,8 +133,9 @@ class Trips(Resource):
         return trips
     #@ns.doc('create_trips')
     @ns.expect(trip_model)
-    @ns.marshal_with(id_model)
+    @ns.marshal_with(id_model, code=httplib.CREATED)
     def post(self):
+        #print '------------date', flask.ext.restplus.inputs.date(flask.request.json['date'])
         'Add a new `Trip`. If no id is given, the server will create one.'
         id = app.trips.add_trip(flask.request.json)
         return {'id': id}, httplib.CREATED
@@ -184,7 +197,7 @@ class Person(Resource):
         person = get_person(trip_id, person_id)
         return person
     @ns.expect(person_model)
-    @ns.marshal_with(id_model)
+    @ns.marshal_with(id_model, code=httplib.ACCEPTED)
     def put(self, trip_id, person_id):
         'Update a `Person` object.'
         trip = get_trip(trip_id)
@@ -193,7 +206,7 @@ class Person(Resource):
         person['id'] = person_id
         trip.add_person(person)
         return {'id': person_id}, httplib.ACCEPTED
-    @ns.marshal_with(id_model)
+    @ns.marshal_with(id_model, code=httplib.ACCEPTED)
     def delete(self, trip_id, person_id):
         'Delete a `Person` object.'
         trip = get_trip(trip_id)
@@ -214,7 +227,7 @@ class Payments(Resource):
         payments = trip.get_payments()
         return payments
     @ns.expect(payment_model)
-    @ns.marshal_with(id_model)
+    @ns.marshal_with(id_model, code=httplib.CREATED)
     def post(self, trip_id):
         'Add a new `Payment`. The id will be auto-generated.'
         trip = get_trip(trip_id)
@@ -233,7 +246,7 @@ class Payment(Resource):
         payment = get_payment(trip_id, payment_id)
         return payment
     @ns.expect(payment_model)
-    @ns.marshal_with(id_model)
+    @ns.marshal_with(id_model, code=httplib.ACCEPTED)
     def put(self, trip_id, payment_id):
         'Update a `Payment` object.'
         trip = get_trip(trip_id)
@@ -242,7 +255,7 @@ class Payment(Resource):
         payment['id'] = payment_id
         trip.add_payment(payment)
         return {'id': payment_id}, httplib.ACCEPTED
-    @ns.marshal_with(id_model)
+    @ns.marshal_with(id_model, code=httplib.ACCEPTED)
     def delete(self, trip_id, payment_id):
         'Delete a `Payment` object.'
         trip = get_trip(trip_id)
