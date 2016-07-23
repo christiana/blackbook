@@ -1,8 +1,20 @@
 import sqlalchemy
 import datetime
-#from sqlalchemy import create_engine
+import os.path
+import os
 
-engine = sqlalchemy.create_engine('sqlite:///:memory:', echo=False)
+
+if 'TRIP_DB' in os.environ:
+    print 'Using database from environment variable TRIP_DB...' 
+    db_name = os.environ['TRIP_DB']
+else:
+    print 'Using default in-memory database...'
+    db_name = 'sqlite:///:memory:'
+print 'Using database: ', db_name 
+#print 'env', os.environ['TRIP_DB']
+
+
+engine = sqlalchemy.create_engine(db_name, echo=False)
 
 
 #>>> from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
