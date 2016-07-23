@@ -10,8 +10,8 @@ import spock.lang.Unroll
 class PaymentCrud extends Specification {
 
     def static client = new RESTClient('http://localhost:27222')
-    def static sharedTripId
-    def static sharedPaymentId
+    def static int sharedTripId
+    def static int sharedPaymentId
 
     def setupSpec() {
         client.setContentType('application/json')
@@ -95,10 +95,10 @@ class PaymentCrud extends Specification {
     }
 
     @Unroll
-    def "GET /trips/#tripId/payments/#personId returns person object"() {
+    def "GET /trips/#tripId/payments/#paymentId returns payment object"() {
         when:
 
-          def response = client.get path: "/trips/$tripId/payments/$personId"
+          def response = client.get path: "/trips/$tripId/payments/$paymentId"
 
         then:
           response.status == 200
@@ -112,13 +112,13 @@ class PaymentCrud extends Specification {
 
 
         where:
-          tripId       | personId
+          tripId       | paymentId
           sharedTripId | sharedPaymentId
 
     }
 
     @Unroll
-    def "GET /trips/#tripId/payments returns a list with one person when one person has been added"() {
+    def "GET /trips/#tripId/payments returns a list with one payment when one payment has been added"() {
         when:
           def response = client.get path: "/trips/$tripId/payments"
 
@@ -127,15 +127,15 @@ class PaymentCrud extends Specification {
           response.data.first() == sharedPaymentId
 
         where:
-          tripId       | personId
+          tripId       | paymentId
           sharedTripId | sharedPaymentId
 
     }
 
     @Unroll
-    def "PUT /trips/#tripId/payments/#personId returns 404 NOT FOUND when the person does not exist"() {
+    def "PUT /trips/#tripId/payments/#paymentId returns 404 NOT FOUND when the payment does not exist"() {
         when:
-          client.put path: "/trips/$tripId/payments/$personId",
+          client.put path: "/trips/$tripId/payments/$paymentId",
                   body: [
                           name  : "Reidar Reisgutt",
                           weight: 0.9
@@ -147,15 +147,15 @@ class PaymentCrud extends Specification {
 
 
         where:
-          tripId       | personId
+          tripId       | paymentId
           sharedTripId | 'does_not_exist'
 
     }
 
     @Unroll
-    def "PUT /trips/#tripId/payments/#personId returns 202 ACCEPTED when the trip exists"() {
+    def "PUT /trips/#tripId/payments/#paymentId returns 202 ACCEPTED when the trip exists"() {
         when:
-          def response = client.put path: "/trips/$tripId/payments/$personId",
+          def response = client.put path: "/trips/$tripId/payments/$paymentId",
                   body: [
                           name       : "Første tur",
                           date       : "2016-07-12",
@@ -166,36 +166,36 @@ class PaymentCrud extends Specification {
           response.status == 202
 
         where:
-          tripId       | personId
+          tripId       | paymentId
           sharedTripId | sharedPaymentId
 
     }
 
     @Unroll
-    def "DELETE /trips/#tripId/payments/#personId returns 404 NOT FOUND when trip does not exist"() {
+    def "DELETE /trips/#tripId/payments/#paymentId returns 404 NOT FOUND when trip does not exist"() {
         when:
-          client.delete path: "/trips/#tripId/payments/#personId"
+          client.delete path: "/trips/#tripId/payments/#paymentId"
 
         then:
           def ex = thrown(HttpResponseException)
           ex.response.status == 404
 
         where:
-          tripId       | personId
+          tripId       | paymentId
           sharedTripId | 'does_not_exist'
 
     }
 
     @Unroll
-    def "DELETE /trips/#tripId/payments/#personId returns 202 ACCEPTED when trip exists"() {
+    def "DELETE /trips/#tripId/payments/#paymentId returns 202 ACCEPTED when trip exists"() {
         when:
-          def response = client.delete path: "/trips/$tripId/payments/$personId"
+          def response = client.delete path: "/trips/$tripId/payments/$paymentId"
 
         then:
           response.status == 202
 
         where:
-          tripId       | personId
+          tripId       | paymentId
           sharedTripId | sharedPaymentId
     }
 

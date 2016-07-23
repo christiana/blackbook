@@ -29,6 +29,8 @@ class BalanceCalculator:
                 totalweight += p['weight']
                 if p['id'] == person['id']:
                     weight = p['weight']
+        if abs(totalweight)<1E-3:
+            return 0
         return weight/totalweight        
         
     def get_amount_internal(self, payment):

@@ -10,8 +10,8 @@ import spock.lang.Unroll
 class PersonCrud extends Specification {
 
     def static client = new RESTClient('http://localhost:27222')
-    def static sharedTripId
-    def static sharedPersonId
+    def static int sharedTripId
+    def static int sharedPersonId
 
     def setupSpec() {
         client.setContentType('application/json')

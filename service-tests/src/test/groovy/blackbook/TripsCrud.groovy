@@ -10,7 +10,7 @@ import spock.lang.Unroll
 class TripsCrud extends Specification {
 
     def client = new RESTClient('http://localhost:27222')
-    def static sharedId
+    def static int sharedId
 
     def setup() {
         client.contentType = 'application/json'
