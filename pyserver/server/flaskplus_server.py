@@ -47,7 +47,10 @@ person_model = api.model('Person',
     'id': fields.Integer(readOnly=True, description='Unique identifier, auto-generated if not input during creation'),
     'name': fields.String(),
     'alias': fields.String(description='Short name'),
-    'weight': fields.Float(description='How much of the total should be paid by the person'),
+    'weight': fields.Float(description='How much of the total should be paid by the person', 
+                           default=1,
+                           min=1E-2,
+                           max=1E2),
     'balance': fields.Float(readOnly=True, description='How much should the person pay or get back.')
     },
     description='One person in the context of a trip.'
@@ -63,13 +66,16 @@ payment_model = api.model('Payment', {
     'description': fields.String(),
     'amount': fields.Float(description='''
                             The amount of money paid, should be split among participants and paid back to creditor.''',
-                            default=1),
-    'participants': fields.List(fields.String(), description='''
+                            default=0,
+                            min=0),
+    'participants': fields.List(fields.Integer(), description='''
                                 `Persons` part of the payment. 
                                 They owe the creditor a sum according to the given type and amount.'''),
     'currency': fields.String(description='The name of the currency used. (EUR, NOK, ...)'),
     'rate': fields.Float(description='The conversion rate from the given amount to the default currency.', 
-                         default=1),
+                         default=1,
+                         min=1E-5,
+                         max=1E5),
     'date': fields.Date()
     })
 

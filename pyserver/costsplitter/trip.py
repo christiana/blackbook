@@ -57,6 +57,14 @@ class Trip:
     def _validate_payment(self, payment):
         if 'date' in payment:
             self._validate_datestring(payment['date']);
+        if 'creditor' in payment:
+            if payment['creditor'] not in self.get_persons():
+                raise werkzeug.exceptions.BadRequest('creditor %s does not exist.'%payment['creditor'])
+        if 'participants' in payment:
+            persons = self.get_persons()
+            for p in payment['participants']:
+                if p not in persons:
+                    raise werkzeug.exceptions.BadRequest('participant %s does not exist.'%p)
     
     def add_person(self, content):
         content = content.copy();
