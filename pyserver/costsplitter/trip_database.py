@@ -20,11 +20,6 @@ print 'Using database: ', db_name
 trip_app.app.config['SQLALCHEMY_DATABASE_URI'] = db_name
 db = flask_sqlalchemy.SQLAlchemy(app)
 
-#engine = sqlalchemy.create_engine(db_name, echo=False)
-
-
-#>>> from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
-#metadata = sqlalchemy.MetaData()
 
 class Trip(db.Model):
     ''
@@ -93,7 +88,6 @@ class Payment(db.Model):
     def __init__(self, content):
         self.update(content)
     def update(self, content):
-        print "update to content: ", content
         for (key, value) in content.items():
             if not hasattr(self, key):
                 continue
@@ -101,13 +95,6 @@ class Payment(db.Model):
                 self.participants = [Participant({'person_id':p}) for p in content['participants']]
             else:
                 setattr(self, key, value)
-#        if 'participants' in content:
-            #print "setting participants...", [Participant({'person_id':p}) for p in content['participants']]
-#            self.participants = [Participant({'person_id':p}) for p in content['participants']]
-        #print "post update: ", self.__dict__
-        #print "post updatep: ", self.participants
-        #print "post updatep part len: ", len(self.participants)
-
           
 class Participant(db.Model):
     ''
@@ -158,17 +145,11 @@ class TripDB:
         return trip.id
 
     def remove(self, id):
-#        print "p remaining trips", len(Trip.query.all())
-#        print "p remaining persons", len(Person.query.all())
-#        print "p remaining payments", len(Payment.query.all())
         entry = Trip.query.get(id)
         if not entry:
             return None
         db.session.delete(entry)
         db.session.commit()
-#        print "remaining trips", len(Trip.query.all())
-#        print "remaining persons", len(Person.query.all())
-#        print "remaining payments", len(Payment.query.all())
         return entry.id
 
     def get_ids(self):
@@ -277,7 +258,6 @@ class PaymentDB:
         full_content.update(content) 
         # insert into database and return new id       
         entry = self.Table(full_content)
-        print "entry", entry.__dict__
         db.session.add(entry)
         db.session.commit()
         return entry.id
@@ -298,13 +278,7 @@ class PaymentDB:
         if not entry:
             return None
         entry.update(content)
-        #print "entry.participants", entry.participants
-#        print "entry.trip.id", entry.trip.id
         db.session.commit()
-        
-#        print "len payments", len(Payment.query.all())
-#        print "len participants", len(Participant.query.all())
-#        print "entry.participants", entry.participants 
             
     def get(self, id):
         entry = self.Table.query.get(id)
@@ -312,7 +286,6 @@ class PaymentDB:
             return None
         retval =  { key:entry.__dict__[key] for key in self._public_table_keys() }
         retval['participants'] = [p.person_id for p in entry.participants]
-        print "get payment:", retval
         return retval
         
     def _public_table_keys(self):

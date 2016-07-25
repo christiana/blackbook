@@ -69,7 +69,6 @@ class Trip:
     def add_person(self, content):
         content = content.copy();
         content['trip_id'] = self.id
-        print 'content A', content
         return self.person_db.create(content)
 
     def update_person(self, content):
