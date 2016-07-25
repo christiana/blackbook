@@ -1,11 +1,9 @@
 import datetime
 import balance_calculator
 import trip_database
+import trip_model_crud
 import pprint
-import werkzeug.exceptions
-#from werkzeug.exceptions import BadRequest
-#raise BadRequest('My custom message')
-    
+import werkzeug.exceptions    
     
 class Trip:
     '''
@@ -15,23 +13,21 @@ class Trip:
     @staticmethod
     def create_trip(trip_info):
         trip = Trip()
-        trip._validate_info(trip_info)
-        id = trip.trip_db.create(trip_info)
+        c = trip._create_default_trip_content()
+        c.update(trip_info)
+        trip._validate_info(c)
+        id = trip.trip_db.create(c)
         return id
     
     def remove_trip(self):
- #       for payment in self.get_payments():
- #           self.remove_payment(payment)
- #       for person in self.get_persons():
- #           self.remove_person(person)
         self.trip_db.remove(self.id)
         self.id = None
     
     def __init__(self, id=None):
         self.id = id
-        self.trip_db = trip_database.TripDB()
-        self.payment_db = trip_database.PaymentDB(trip_id=id)
-        self.person_db = trip_database.PersonDB(trip_id=id)
+        self.trip_db = trip_model_crud.ModelCRUD(trip_database.Trip)
+        self.payment_db = trip_model_crud.ModelCRUD(trip_database.Payment)
+        self.person_db = trip_model_crud.ModelCRUD(trip_database.Person)
 
     def get_info(self):
         return self.trip_db.get(self.id)
@@ -67,9 +63,9 @@ class Trip:
                     raise werkzeug.exceptions.BadRequest('participant %s does not exist.'%p)
     
     def add_person(self, content):
-        content = content.copy();
-        content['trip_id'] = self.id
-        return self.person_db.create(content)
+        c = self._create_default_person_content()
+        c.update(content)
+        return self.person_db.create(c)
 
     def update_person(self, content):
         return self.person_db.update(content)
@@ -78,7 +74,7 @@ class Trip:
         return self.person_db.remove(id)
     
     def get_persons(self):
-        return self.person_db.get_ids()
+        return [entry.id for entry in trip_database.Person.query.filter_by(trip_id=self.id)]
 
     def get_person(self, id):
         person = self.person_db.get(id)
@@ -91,10 +87,10 @@ class Trip:
         return person
     
     def add_payment(self, content):
-        content = content.copy();
-        content['trip_id'] = self.id
-        self._validate_payment(content)
-        return self.payment_db.create(content)
+        c = self._create_default_payment_content()
+        c.update(content) 
+        self._validate_payment(content) # hack: the default creditor is invalid, thus validate only input for now.
+        return self.payment_db.create(c)
         
     def update_payment(self, content):
         self._validate_payment(content)
@@ -107,4 +103,30 @@ class Trip:
         return self.payment_db.get(id)
 
     def get_payments(self):
-        return self.payment_db.get_ids()
+        return [entry.id for entry in trip_database.Payment.query.filter_by(trip_id=self.id)]
+        
+        
+    def _create_default_trip_content(self):
+        date = datetime.date.today().isoformat()
+        return {  'description':'',
+                  'date':date,
+                  'name':'Trip_%s' % date } 
+
+    def _create_default_payment_content(self):
+        return {   'creditor':0,
+                   'type':'split',
+                   'amount':0,
+                   'description':"",
+                   'rate':1.0,
+                   'currency':"",
+                   'participants':[],
+                   'date':datetime.date.today().isoformat(), 
+                   'trip_id':self.id
+                   }
+
+    def _create_default_person_content(self):
+        return { 'name':'',
+                 'alias':'',
+                 'weight':1,
+                 'trip_id':self.id
+                 }

@@ -21,6 +21,7 @@ trip_app.app.config['SQLALCHEMY_DATABASE_URI'] = db_name
 db = flask_sqlalchemy.SQLAlchemy(app)
 
 
+###############################################################################
 class Trip(db.Model):
     ''
     id = db.Column(db.Integer, primary_key=True)
@@ -42,6 +43,13 @@ class Trip(db.Model):
             setattr(self, key, value)
         pass
 
+    def get_public_values(self):
+        return { key:self.__dict__[key] for key in self._public_table_keys() }
+
+    def _public_table_keys(self):
+        return ['id','description','date','name']
+
+###############################################################################
 class Person(db.Model):
     ''
     id = db.Column(db.Integer, primary_key=True)
@@ -56,6 +64,7 @@ class Person(db.Model):
                       
     def __init__(self, content):
         self.update(content)
+
     def update(self, content):
         for (key, value) in content.items():
             if not hasattr(self, key):
@@ -64,8 +73,14 @@ class Person(db.Model):
                 continue
             assert hasattr(self, key), 'did not find key %s in object %s' % (key, self.__class__.__name__)
             setattr(self, key, value)
-        pass
+        
+    def get_public_values(self):
+        return { key:self.__dict__[key] for key in self._public_table_keys() }
 
+    def _public_table_keys(self):
+        return ['id','name','alias','weight']
+
+###############################################################################
 class Payment(db.Model):
     ''
     id = db.Column(db.Integer, primary_key=True)
@@ -95,7 +110,16 @@ class Payment(db.Model):
                 self.participants = [Participant({'person_id':p}) for p in content['participants']]
             else:
                 setattr(self, key, value)
+
+    def get_public_values(self):
+        retval =  { key:self.__dict__[key] for key in self._public_table_keys() }
+        retval['participants'] = [p.person_id for p in self.participants]
+        return retval
+        
+    def _public_table_keys(self):
+        return ['id','creditor','type','amount','description','currency','rate','date']
           
+###############################################################################
 class Participant(db.Model):
     ''
     id = db.Column(db.Integer, primary_key=True)
@@ -113,193 +137,10 @@ class Participant(db.Model):
     def __repr__(self):
         return '<Participant person=%s>' % str(self.person_id)
 
+###############################################################################
 db.create_all()
-#metadata.create_all(engine)
-
-#connection = engine.connect()
-
-
 ###############################################################################
-class TripDB:
-    '''
-    CRUD database interface for the trip dictionary.
-    '''
-    def __init__(self):
-        '''
-        '''
-        pass
-    
-    def create(self, content):        
-        if not isinstance(content, dict):
-            raise Exception('expected dict')
-        if 'id' in content:
-            raise Exception('id not allowed as input to entry creation')
-        # start out with the default dict, then fill in the input dict        
-        full_content = self._create_default_content()
-        full_content.update(content) 
-        
-        # insert into database and return new id       
-        trip = Trip(full_content)
-        db.session.add(trip)
-        db.session.commit()
-        return trip.id
 
-    def remove(self, id):
-        entry = Trip.query.get(id)
-        if not entry:
-            return None
-        db.session.delete(entry)
-        db.session.commit()
-        return entry.id
 
-    def get_ids(self):
-        return [trip.id for trip in Trip.query.all()]
-        
-    def update(self, content):
-        entry = Trip.query.get(content['id'])
-        if not entry:
-            return None
-        entry.update(content)
-        db.session.commit()
-    
-    def get(self, id):
-        entry = Trip.query.get(id)
-        if not entry:
-            return None
-        return { key:entry.__dict__[key] for key in self._public_table_keys() }
 
-    def _public_table_keys(self):
-        return ['id','description','date','name']
-
-    def _create_default_content(self):
-        date = datetime.date.today().isoformat()
-        return {  'description':'',
-                  'date':date,
-                  'name':'Trip_%s' % date } 
-
-###############################################################################
-class PersonDB:
-    '''
-    CRUD database interface for the person dictionary.
-    '''
-    def __init__(self, trip_id):
-        '''
-        '''
-        self.Table = Person
-        self.trip_id = trip_id
-        pass
-    
-    def create(self, content):        
-        if not isinstance(content, dict):
-            raise Exception('expected dict')
-        if 'id' in content:
-            raise Exception('id not allowed as input to entry creation')
-        # start out with the default dict, then fill in the input dict        
-        full_content = self._create_default_content()
-        full_content.update(content) 
-#        full_content.update({'trip':self.trip_id})
-        
-        # insert into database and return new id       
-        entry = self.Table(full_content)
-        db.session.add(entry)
-        db.session.commit()
-        return entry.id
-
-    def remove(self, id):
-        entry = self.Table.query.get(id)
-        if not entry:
-            return None
-        db.session.delete(entry)
-        db.session.commit()
-        return entry.id
-
-    def get_ids(self):
-        return [entry.id for entry in self.Table.query.filter_by(trip_id=self.trip_id)]
-        
-    def update(self, content):
-        entry = self.Table.query.get(content['id'])
-        if not entry:
-            return None
-        entry.update(content)
-        db.session.commit()
-    
-    def get(self, id):
-        entry = self.Table.query.get(id)
-        if not entry:
-            return None
-        return { key:entry.__dict__[key] for key in self._public_table_keys() }
-
-    def _public_table_keys(self):
-        return ['id','name','alias','weight']
-
-    def _create_default_content(self):
-        return { 'name':'',
-                 'alias':'',
-                 'weight':1,
-                 'trip_id':self.trip_id
-                 }
-
-###############################################################################
-class PaymentDB:
-    '''
-    CRUD database interface for the payment dictionary.
-    '''
-    def __init__(self, trip_id):
-        self.Table = Payment
-        self.trip_id = trip_id
-        
-    def create(self, content):
-        if not isinstance(content, dict):
-            raise Exception('expected dict')
-        if 'id' in content:
-            raise Exception('id not allowed as input to entry creation')
-        # start out with the default dict, then fill in the input dict
-        full_content = self._create_default_content()
-        full_content.update(content) 
-        # insert into database and return new id       
-        entry = self.Table(full_content)
-        db.session.add(entry)
-        db.session.commit()
-        return entry.id
-
-    def remove(self, id):
-        entry = self.Table.query.get(id)
-        if not entry:
-            return None
-        db.session.delete(entry)
-        db.session.commit()
-        return entry.id
-
-    def get_ids(self):  
-        return [entry.id for entry in self.Table.query.filter_by(trip_id=self.trip_id)]
-
-    def update(self, content):
-        entry = self.Table.query.get(content['id'])
-        if not entry:
-            return None
-        entry.update(content)
-        db.session.commit()
-            
-    def get(self, id):
-        entry = self.Table.query.get(id)
-        if not entry:
-            return None
-        retval =  { key:entry.__dict__[key] for key in self._public_table_keys() }
-        retval['participants'] = [p.person_id for p in entry.participants]
-        return retval
-        
-    def _public_table_keys(self):
-        return ['id','creditor','type','amount','description','currency','rate','date']
-
-    def _create_default_content(self):
-        return {   'creditor':0,
-                   'type':'split',
-                   'amount':0,
-                   'description':"",
-                   'rate':1.0,
-                   'currency':"",
-                   'participants':[],
-                   'date':datetime.date.today().isoformat(), 
-                   'trip_id':self.trip_id
-                   }
         
