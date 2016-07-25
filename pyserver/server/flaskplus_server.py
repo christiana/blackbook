@@ -6,11 +6,11 @@ import pyserver.costsplitter.trip_manager
 import flask
 import httplib
 from flask.ext.restplus import Api, Resource, fields
-import flask.ext.restplus 
+import flask.ext.restplus
+import pyserver.costsplitter.trip_app 
 
-app = flask.Flask(__name__)
 
-api = Api(app, version='0.1', title='Svarteboka API',
+api = Api(pyserver.costsplitter.trip_app.app, version='0.1', title='Svarteboka API',
     description='''\
 A tool for keeping track of expenses on group trips. 
 See https://github.com/christiana/blackbook
@@ -19,6 +19,8 @@ See https://github.com/christiana/blackbook
 )
 
 ns = api.namespace('', description='TRIP operations')
+app = pyserver.costsplitter.trip_app.app
+app.trips = pyserver.costsplitter.trip_manager.TripManager()
 
 
 class DebuggedDate(fields.Date):
@@ -81,35 +83,33 @@ payment_model = api.model('Payment', {
 
 
 
-app.trips = pyserver.costsplitter.trip_manager.TripManager()
-
 ###############################################################################
-#@app.errorhandler(httplib.NOT_FOUND)
-#def handle_NOT_FOUND(error):
-#    print "NOT_FOUND ERROR: ", error
-#    return flask.make_response(flask.jsonify({'error': 'Not found',
-#                                              'details': str(error)}), 
-#                               httplib.NOT_FOUND)
+@app.errorhandler(httplib.NOT_FOUND)
+def handle_NOT_FOUND(error):
+    print "NOT_FOUND ERROR: ", error
+    return flask.make_response(flask.jsonify({'error': 'Not found',
+                                              'details': str(error)}), 
+                               httplib.NOT_FOUND)
 
-#@app.errorhandler(httplib.BAD_REQUEST)
-#def handle_BAD_REQUEST(error):
-#    print "BADREQUEST ERROR: ", error
-#    return flask.make_response(flask.jsonify({'error': 'Bad request',
-#                                              'details': str(error)}), 
-#                               httplib.BAD_REQUEST)
+@app.errorhandler(httplib.BAD_REQUEST)
+def handle_BAD_REQUEST(error):
+    print "BADREQUEST ERROR: ", error
+    return flask.make_response(flask.jsonify({'error': 'Bad request',
+                                              'details': str(error)}), 
+                               httplib.BAD_REQUEST)
 
-#@app.errorhandler(httplib.INTERNAL_SERVER_ERROR)
-#def handle_INTERNAL_SERVER_ERROR(error):
-#    print "INTERNAL ERROR: ", error
-#    return flask.make_response(flask.jsonify({'error': 'Internal server error',
-#                                              'details': str(error)}), 
-#                               httplib.INTERNAL_SERVER_ERROR)
+@app.errorhandler(httplib.INTERNAL_SERVER_ERROR)
+def handle_INTERNAL_SERVER_ERROR(error):
+    print "INTERNAL ERROR: ", error
+    return flask.make_response(flask.jsonify({'error': 'Internal server error',
+                                              'details': str(error)}), 
+                               httplib.INTERNAL_SERVER_ERROR)
 
-#@app.errorhandler(httplib.METHOD_NOT_ALLOWED)
-#def handle_METHOD_NOT_ALLOWED(error):
-#    return flask.make_response(flask.jsonify({'error': 'Method not allowed',
-#                                              'details': str(error)}), 
-#                               httplib.METHOD_NOT_ALLOWED)
+@app.errorhandler(httplib.METHOD_NOT_ALLOWED)
+def handle_METHOD_NOT_ALLOWED(error):
+    return flask.make_response(flask.jsonify({'error': 'Method not allowed',
+                                              'details': str(error)}), 
+                               httplib.METHOD_NOT_ALLOWED)
 ###############################################################################
 
 

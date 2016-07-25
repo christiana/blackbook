@@ -20,18 +20,18 @@ class Trip:
         return id
     
     def remove_trip(self):
-        for payment in self.get_payments():
-            self.remove_payment(payment)
-        for person in self.get_persons():
-            self.remove_person(person)
+ #       for payment in self.get_payments():
+ #           self.remove_payment(payment)
+ #       for person in self.get_persons():
+ #           self.remove_person(person)
         self.trip_db.remove(self.id)
         self.id = None
     
     def __init__(self, id=None):
         self.id = id
-        self.trip_db = trip_database.TripDB(table=trip_database.trips_table)
-        self.payment_db = trip_database.PaymentDB(table=trip_database.payments_table, trip_id=id)
-        self.person_db = trip_database.PersonDB(table=trip_database.persons_table, trip_id=id)
+        self.trip_db = trip_database.TripDB()
+        self.payment_db = trip_database.PaymentDB(trip_id=id)
+        self.person_db = trip_database.PersonDB(trip_id=id)
 
     def get_info(self):
         return self.trip_db.get(self.id)
@@ -69,6 +69,7 @@ class Trip:
     def add_person(self, content):
         content = content.copy();
         content['trip_id'] = self.id
+        print 'content A', content
         return self.person_db.create(content)
 
     def update_person(self, content):

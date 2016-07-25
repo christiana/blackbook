@@ -9,7 +9,7 @@ class TripManager:
     handle create/destroy
     '''
     def __init__(self):
-        self.trip_db = trip_database.TripDB(table=trip_database.trips_table)
+        self.trip_db = trip_database.TripDB()
         
     def add_trip(self, trip_info={}):
         return trip.Trip.create_trip(trip_info)
